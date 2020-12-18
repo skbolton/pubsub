@@ -1,8 +1,8 @@
-defmodule PubsubTest do
+defmodule GenesisPubsubTest do
   use ExUnit.Case
-  doctest Pubsub
+  doctest GenesisPubsub
 
   test "greets the world" do
-    assert Pubsub.hello() == :world
+    assert GenesisPubsub.hello() == :world
   end
 end

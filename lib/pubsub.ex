@@ -1,4 +1,4 @@
-defmodule Pubsub do
+defmodule GenesisPubsub do
   @moduledoc """
   Documentation for `Pubsub`.
   """
@@ -8,7 +8,7 @@ defmodule Pubsub do
 
   ## Examples
 
-      iex> Pubsub.hello()
+      iex> GenesisPubsub.hello()
       :world
 
   """
