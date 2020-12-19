@@ -1,0 +1,13 @@
+{
+  "coverage_options": {
+    "treat_no_relevant_lines_as_covered": true
+  },
+  "custom_stop_words": [
+    "Logger",
+    "Tracer"
+  ],
+  "skip_files": [
+    "deps",
+    "test"
+  ]
+}

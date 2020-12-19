@@ -1,0 +1,216 @@
+name: Tests
+on: push
+env:
+  MIX_ENV: test
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  OTP_VERSION: 23.1.2
+  ELIXIR_VERSION: 1.11.2
+  SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgres:12
+        ports: ['5432:5432']
+        env:
+          POSTGRES_PASSWORD: postgres
+
+    steps:
+      - uses: actions/checkout@main
+      
+      - name: Setup SSH
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.READONLY_DEPLOY_KEY }}"
+
+      - uses: actions/setup-elixir@main
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          experimental-otp: true
+
+      - name: Cache Deps
+        uses: actions/cache@main
+        with:
+          path: deps
+          key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-mix-
+
+      - name: Cache Build
+        uses: actions/cache@main
+        with:
+          path: _build
+          key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-
+
+      - run: mix do deps.get, compile
+      - run: mix coveralls.json
+
+      - name: Upload Coverage Report to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  compile:
+    name: No Compile Errors
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+      
+      - name: Setup SSH
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.READONLY_DEPLOY_KEY }}"
+
+      - uses: actions/setup-elixir@main
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          experimental-otp: true
+
+      - name: Cache Deps
+        uses: actions/cache@main
+        with:
+          path: deps
+          key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-mix-
+
+      - name: Cache Build
+        uses: actions/cache@main
+        with:
+          path: _build
+          key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-
+
+      - run: mix do deps.get, compile --warnings-as-errors
+
+  credo:
+    name: Credo
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+      
+      - name: Setup SSH
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.READONLY_DEPLOY_KEY }}"
+
+      - uses: actions/setup-elixir@main
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          experimental-otp: true
+
+      - name: Cache Deps
+        uses: actions/cache@main
+        with:
+          path: deps
+          key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: | 
+            ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-mix-
+
+      - name: Cache Build
+        uses: actions/cache@main
+        with:
+          path: _build
+          key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: | 
+            ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-
+
+      - run: mix do deps.get, compile
+      - run: mix credo
+
+  dialyzer:
+    name: Dialyzer
+    runs-on: ubuntu-latest
+
+    env:
+      MIX_ENV: dev
+
+    steps:
+      - uses: actions/checkout@main
+
+      - uses: actions/setup-elixir@main
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          experimental-otp: true
+      
+      - name: Setup SSH
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.READONLY_DEPLOY_KEY }}"
+
+      - name: Cache Deps
+        uses: actions/cache@main
+        with:
+          path: deps
+          key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-mix-
+
+      - name: Cache Build
+        uses: actions/cache@main
+        with:
+          path: _build
+          key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: | 
+            ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-
+
+      - name: Cache PLT
+        uses: actions/cache@main
+        with:
+          path: priv/plts
+          key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-dialyzer-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-dialyzer-
+
+      - run: mix do deps.get, compile
+      - run: mix dialyzer
+
+  formatter:
+    name: Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+      
+      - name: Setup SSH
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.READONLY_DEPLOY_KEY }}"
+
+      - uses: actions/setup-elixir@main
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          experimental-otp: true
+
+      - name: Cache Deps
+        uses: actions/cache@main
+        with:
+          path: deps
+          key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-mix-
+
+      - name: Cache Build
+        uses: actions/cache@main
+        with:
+          path: _build
+          key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-
+
+      - run: mix do deps.get, compile
+      - run: mix format --check-formatted
