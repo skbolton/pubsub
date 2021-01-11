@@ -1,4 +1,4 @@
-defmodule GenesisPubsub.MixProject do
+defmodule GenesisPubSub.MixProject do
   use Mix.Project
 
   def project do
@@ -8,6 +8,9 @@ defmodule GenesisPubsub.MixProject do
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      name: "PubSub",
+      source_url: "https://github.com/genesisblockhq/pubsub",
+      docs: docs(),
       package: package(),
       test_coverage: [tool: ExCoveralls],
       test_paths: ["lib"],
@@ -37,7 +40,11 @@ defmodule GenesisPubsub.MixProject do
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
-      {:tesla, "~> 1.3"}
+      {:hammox, "~> 0.3", only: [:test]},
+      {:jason, "~> 1.2"},
+      {:tesla, "~> 1.3"},
+      {:uuid, "~> 1.1"},
+      {:protobuf, "~> 0.7.1", only: [:test, :dev]}
     ]
   end
 
@@ -45,6 +52,19 @@ defmodule GenesisPubsub.MixProject do
     [
       organization: "genesisblock",
       files: ["lib", "mix.exs", "README*"]
+    ]
+  end
+
+  def docs() do
+    [
+      main: "GenesisPubSub",
+      groups_for_modules: [
+        Adapters: [
+          GenesisPubSub.Adapter,
+          GenesisPubSub.Adapter.Google,
+          GenesisPubSub.Adapter.Local
+        ]
+      ]
     ]
   end
 end
