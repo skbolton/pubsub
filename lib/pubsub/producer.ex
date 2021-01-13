@@ -68,7 +68,7 @@ defmodule GenesisPubSub.Producer do
     Producer.Server.start_link(config)
   end
 
-  @spec publish(pid(), Message.unpublished_t()) :: {:ok, Message.published_t()}
+  @spec publish(pid() | atom(), Message.unpublished_t()) :: {:ok, Message.published_t()}
   @doc """
   Publish a single `message` or a list of `message` through `producer`.
   """
@@ -79,7 +79,7 @@ defmodule GenesisPubSub.Producer do
     config.adapter.publish(config.topic, message)
   end
 
-  @spec publish(pid(), [Message.unpublished_t(), ...]) :: {:ok, [Message.published_t(), ...]}
+  @spec publish(pid() | atom(), [Message.unpublished_t(), ...]) :: {:ok, [Message.published_t(), ...]}
   def publish(producer, [%Message{} | _rest] = messages) do
     %Config{} = config = Producer.Server.get_config(producer)
     messages_with_meta = Enum.map(messages, &set_producer_meta(config, &1))
