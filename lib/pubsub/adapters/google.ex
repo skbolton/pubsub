@@ -120,6 +120,26 @@ defmodule GenesisPubSub.Adapter.Google do
     Message.new(data: decoded_data, metadata: Map.from_struct(metadata))
   end
 
+  @impl GenesisPubSub.Adapter
+  def test_message(broadway_module, %Message{} = message) do
+    {:ok, %{data: data, metadata: meta}} = Message.encode(message)
+
+    attributes =
+      meta
+      |> Map.take(~w(correlation_id causation_id topic service schema_type schema_encoder))
+      |> Enum.into(%{})
+
+    broadway_metadata = %{
+      # these keys are set as atoms in the top level metadata
+      messageId: message.metadata.event_id,
+      publishTime: message.metadata.published_at,
+      # all other keys are set as string keys in an "attributes" map
+      attributes: attributes
+    }
+
+    Broadway.test_message(broadway_module, data, metadata: broadway_metadata)
+  end
+
   # gcloud pubsub doesn't support sending nil values at any of the attribute fields
   # having these fields missing in attributes won't cause any harm because
   # GenesisPubSub.Adapter.Google.unpack/1 will grab the values from the correct place
@@ -134,7 +154,7 @@ defmodule GenesisPubSub.Adapter.Google do
   end
 
   # adapters are responsible for setting the following metadata fields
-  defp set_published_meta(message, id) do
+  def set_published_meta(message, id) do
     message
     |> Message.put_meta(:event_id, id)
     |> Message.put_meta(:published_at, DateTime.utc_now())

@@ -43,4 +43,11 @@ defmodule GenesisPubSub.Adapter.Local do
       }
     )
   end
+
+  @impl GenesisPubSub.Adapter
+  def test_message(broadway_module, message) do
+    {:ok, %{data: data, metadata: metadata}} = Message.encode(message)
+
+    Broadway.test_message(broadway_module, data: data, metadata: metadata)
+  end
 end

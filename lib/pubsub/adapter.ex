@@ -33,4 +33,24 @@ defmodule GenesisPubSub.Adapter do
   shape. This callback maps Broadway messages into internal messages.
   """
   @callback unpack(Broadway.Message.t()) :: Message.published_t()
+
+  @doc """
+  Converts a message and sends it through `Broadway.test_message/3`.
+
+  Broadway has testing utilities to generate broadway messages and send them
+  through a pipeline as a way of testing consumers.
+
+      Broadway.test_message(MyBroadwayConsumer, "some data", opts)
+
+  This function wraps that utility by allowing the passing of a `Message` struct
+  instead of data and options.
+
+      message = Message.new(data: %{account_id: "123"})
+      GenesisPubSub.Adapter.Google.test_message(MyBroadwayConsumer, message)
+
+  Each adapter might store data differently in the metadata field of a broadway
+  message so this callback allows an adapter to set up the broadway message to
+  ensure that `unpack/1` will work on the produced broadway message.
+  """
+  @callback test_message(module(), Message.published_t()) :: reference()
 end

@@ -13,4 +13,15 @@ defmodule GenesisPubSub.Consumer do
 
     adapter.unpack(broadway_message)
   end
+
+  @spec test_message(module(), Message.published_t()) :: reference()
+  @doc """
+  Converts a message using configued adapter and sends it through
+  `Broadway.test_message/3`.
+  """
+  def test_message(broadway_module, message) do
+    adapter = GenesisPubSub.adapter()
+
+    adapter.test_message(broadway_module, message)
+  end
 end

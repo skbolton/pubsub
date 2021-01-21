@@ -4,7 +4,7 @@ defmodule GenesisPubSub.MixProject do
   def project do
     [
       app: :genesis_pubsub,
-      version: "0.2.1",
+      version: "0.3.0",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -58,6 +58,8 @@ defmodule GenesisPubSub.MixProject do
   def docs() do
     [
       main: "GenesisPubSub",
+      extra_section: "GUIDES",
+      extras: ["guides/testing.md"],
       groups_for_modules: [
         Adapters: [
           GenesisPubSub.Adapter,

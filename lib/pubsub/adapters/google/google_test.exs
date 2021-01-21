@@ -153,6 +153,98 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
     end
   end
 
+  describe "test_message/2" do
+    setup context do
+      _ = start_supervised!({GenesisPubSub.TestBroadwayConsumer, name: context.test})
+
+      json_message =
+        Message.new(
+          data: %{account_id: "123"},
+          metadata: %{
+            correlation_id: UUID.uuid4(),
+            event_id: UUID.uuid4(),
+            published_at: DateTime.utc_now(),
+            schema: SchemaSpec.json(),
+            service: "testing",
+            topic: "a-topic"
+          }
+        )
+
+      proto_message =
+        Message.new(
+          data: TestProto.new(%{account_id: "123", name: "Bob"}),
+          metadata: %{
+            correlation_id: UUID.uuid4(),
+            event_id: UUID.uuid4(),
+            published_at: DateTime.utc_now(),
+            schema: SchemaSpec.proto(TestProto),
+            service: "testing",
+            topic: "a-different-topic"
+          }
+        )
+
+      {:ok, json_message: json_message, proto_message: proto_message}
+    end
+
+    test "data is set correctly", %{json_message: json, proto_message: proto, test: test_name} do
+      # json message
+      {:ok, %{data: data}} = Message.encode(json)
+
+      ref = Google.test_message(test_name, json)
+      assert_receive {:ack, ^ref, [message] = _successful, [] = _failed}, 2000
+      assert %{data: ^data} = message
+
+      # proto
+      {:ok, %{data: data}} = Message.encode(proto)
+
+      ref = Google.test_message(test_name, proto)
+      assert_receive {:ack, ^ref, [message] = _successful, [] = _failed}, 2000
+      assert %{data: ^data} = message
+    end
+
+    test "metadata is set correctly", %{json_message: json, proto_message: proto, test: test_name} do
+      # json message
+      event_id = json.metadata.event_id
+      published_at = json.metadata.published_at
+      correlation_id = json.metadata.correlation_id
+      causation_id = json.metadata.causation_id
+      topic = json.metadata.topic
+      service = json.metadata.service
+
+      ref = Google.test_message(test_name, json)
+      assert_receive {:ack, ^ref, [message] = _successful, [] = _failed}, 2000
+      # event id and publish time get put as top level keys in metadata
+      assert %{metadata: %{messageId: ^event_id, publishTime: ^published_at, attributes: attrs}} = message
+      # all other keys go in attributes as string keys
+      assert %{
+               "correlation_id" => ^correlation_id,
+               "causation_id" => ^causation_id,
+               "topic" => ^topic,
+               "service" => ^service
+             } = attrs
+
+      # proto
+      event_id = proto.metadata.event_id
+      published_at = proto.metadata.published_at
+      correlation_id = proto.metadata.correlation_id
+      causation_id = proto.metadata.causation_id
+      topic = proto.metadata.topic
+      service = proto.metadata.service
+
+      ref = Google.test_message(test_name, proto)
+      assert_receive {:ack, ^ref, [message] = _successful, [] = _failed}, 2000
+      # same top level keys check as json
+      assert %{metadata: %{messageId: ^event_id, publishTime: ^published_at, attributes: attrs}} = message
+      # same attributes check as json
+      assert %{
+               "correlation_id" => ^correlation_id,
+               "causation_id" => ^causation_id,
+               "topic" => ^topic,
+               "service" => ^service
+             } = attrs
+    end
+  end
+
   # create example message for tests
   defp create_message(_context) do
     schema_spec = SchemaSpec.json()
