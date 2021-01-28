@@ -11,8 +11,11 @@ defmodule GenesisPubSub.Adapter.Google do
   values.
 
       config :genesis_pubsub, GenesisPubSub.Adapter.Google
-        auth_provider: Goth,
-        base_url: "https://pubsub.googleapis.com"
+        auth_provider: Goth
+
+  To change the base url you will need to set it on the google_api_pub_sub dep.
+
+      config :google_api_pub_sub, base_url: "http://pubsub.google.com"
 
   To use the Google Adapter in the project either configure it as the adapter in
   GenesisPubSub env.
@@ -49,9 +52,8 @@ defmodule GenesisPubSub.Adapter.Google do
   end
 
   def base_url() do
-    :genesis_pubsub
-    |> Application.get_env(__MODULE__, [])
-    |> Keyword.get(:base_url, "https://pubsub.googleapis.com")
+    # we use http to send it through the istio proxy
+    Application.get_env(:google_api_pub_sub, :base_url, "http://pubsub.google.com")
   end
 
   @impl GenesisPubSub.Adapter
