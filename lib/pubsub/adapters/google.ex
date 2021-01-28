@@ -53,7 +53,7 @@ defmodule GenesisPubSub.Adapter.Google do
 
   def base_url() do
     # we use http to send it through the istio proxy
-    Application.get_env(:google_api_pub_sub, :base_url, "http://pubsub.google.com")
+    Application.get_env(:google_api_pub_sub, :base_url, "https://pubsub.googleapis.com")
   end
 
   @impl GenesisPubSub.Adapter
