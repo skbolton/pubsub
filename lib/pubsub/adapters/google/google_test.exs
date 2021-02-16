@@ -245,6 +245,72 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
     end
   end
 
+  describe "telemetry events" do
+    test "publish start/end is called properly for single message", %{message: message, test: test_name} do
+      :telemetry.attach(
+        "#{test_name}-start",
+        [:genesis_pubsub, :publish, :start],
+        &report_telemetry_received/4,
+        nil
+      )
+
+      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, nil)
+      event_id = "1"
+      topic = "a-topic"
+
+      mock(fn %Tesla.Env{method: :post} ->
+        json(%{messageIds: [event_id]})
+      end)
+
+      Google.publish(topic, message)
+
+      assert_receive {[:genesis_pubsub, :publish, :start], _measurements, %{messages: [^message], topic: ^topic}, nil}
+
+      # verify that published message is sent through
+      assert_receive {[:genesis_pubsub, :publish, :end], _measurements,
+                      %{messages: [%{metadata: %{event_id: id}}], topic: ^topic}, nil}
+
+      # verify that we sent published message through
+      assert id != nil
+    end
+
+    test "publish start/end is called properly for multiple messages", %{message: message, test: test_name} do
+      second_message = Message.follow(message) |> Message.put_meta(:schema, SchemaSpec.json())
+      topic = "mutliple-messages-topic"
+
+      :telemetry.attach(
+        "#{test_name}-start",
+        [:genesis_pubsub, :publish, :start],
+        &report_telemetry_received/4,
+        nil
+      )
+
+      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, nil)
+      event_id_one = "1"
+      event_id_two = "1"
+
+      mock(fn %Tesla.Env{method: :post} ->
+        json(%{messageIds: [event_id_one, event_id_two]})
+      end)
+
+      Google.publish(topic, [message, second_message])
+
+      assert_receive {[:genesis_pubsub, :publish, :start], _measurements,
+                      %{messages: [^message, ^second_message], topic: ^topic}, nil}
+
+      # verify that published message is sent through
+      assert_receive {[:genesis_pubsub, :publish, :end], _measurements,
+                      %{
+                        messages: [%{metadata: %{event_id: first_id}}, %{metadata: %{event_id: second_id}}],
+                        topic: ^topic
+                      }, nil}
+
+      # verify that published messages were sent through telemetry
+      assert first_id != nil
+      assert second_id != nil
+    end
+  end
+
   # create example message for tests
   defp create_message(_context) do
     schema_spec = SchemaSpec.json()
@@ -261,5 +327,9 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
     {:ok, %{data: _encoded_data, metadata: _encoded_meta} = encoded} = Message.encode(message)
 
     {:ok, encoded_message: encoded}
+  end
+
+  defp report_telemetry_received(event_name, measurments, context, config) do
+    send(self(), {event_name, measurments, context, config})
   end
 end

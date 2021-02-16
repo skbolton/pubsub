@@ -4,7 +4,7 @@ defmodule GenesisPubSub.MixProject do
   def project do
     [
       app: :genesis_pubsub,
-      version: "0.4.0",
+      version: "0.6.0",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -44,7 +44,8 @@ defmodule GenesisPubSub.MixProject do
       {:jason, "~> 1.2"},
       {:tesla, "~> 1.3"},
       {:uuid, "~> 1.1"},
-      {:protobuf, "~> 0.7.1", only: [:test, :dev]}
+      {:protobuf, "~> 0.7.1", only: [:test, :dev]},
+      {:telemetry, "~> 0.4"}
     ]
   end
 
@@ -59,7 +60,7 @@ defmodule GenesisPubSub.MixProject do
     [
       main: "GenesisPubSub",
       extra_section: "GUIDES",
-      extras: ["guides/testing.md"],
+      extras: ["guides/testing.md", "guides/telemetry.md"],
       groups_for_modules: [
         Adapters: [
           GenesisPubSub.Adapter,
