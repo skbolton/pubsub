@@ -131,7 +131,7 @@ defmodule GenesisPubSub.Adapter.Google do
   end
 
   @impl GenesisPubSub.Adapter
-  def test_message(broadway_module, %Message{} = message) do
+  def pack(acknowledger, batch_mode, %Message{} = message) do
     {:ok, %{data: data, metadata: meta}} = Message.encode(message)
 
     attributes =
@@ -147,7 +147,7 @@ defmodule GenesisPubSub.Adapter.Google do
       attributes: attributes
     }
 
-    Broadway.test_message(broadway_module, data, metadata: broadway_metadata)
+    %Broadway.Message{data: data, metadata: broadway_metadata, acknowledger: acknowledger, batch_mode: batch_mode}
   end
 
   # gcloud pubsub doesn't support sending nil values at any of the attribute fields

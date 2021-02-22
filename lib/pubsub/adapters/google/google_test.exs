@@ -153,10 +153,9 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
     end
   end
 
-  describe "test_message/2" do
-    setup context do
-      _ = start_supervised!({GenesisPubSub.TestBroadwayConsumer, name: context.test})
-
+  describe "pack/1" do
+    # message creation
+    setup do
       json_message =
         Message.new(
           data: %{account_id: "123"},
@@ -186,23 +185,43 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
       {:ok, json_message: json_message, proto_message: proto_message}
     end
 
-    test "data is set correctly", %{json_message: json, proto_message: proto, test: test_name} do
+    # acknowledger and batch mode
+    setup do
+      acknowledger = {Broadway.CallerAcknowledger, {self(), make_ref()}, :ok}
+
+      {:ok, acknowledger: acknowledger, batch_mode: :flush}
+    end
+
+    test "acknowledger is set on message", %{acknowledger: acknowledger, batch_mode: batch_mode, json_message: message} do
+      assert %Broadway.Message{acknowledger: ^acknowledger} = Google.pack(acknowledger, batch_mode, message)
+    end
+
+    test "batch_mode is set on message", %{acknowledger: acknowledger, json_message: message} do
+      assert %Broadway.Message{batch_mode: :bulk} = Google.pack(acknowledger, :bulk, message)
+      assert %Broadway.Message{batch_mode: :flush} = Google.pack(acknowledger, :flush, message)
+    end
+
+    test "data is set correctly", %{
+      acknowledger: acknowledger,
+      batch_mode: batch_mode,
+      json_message: json,
+      proto_message: proto
+    } do
       # json message
       {:ok, %{data: data}} = Message.encode(json)
-
-      ref = Google.test_message(test_name, json)
-      assert_receive {:ack, ^ref, [message] = _successful, [] = _failed}, 2000
-      assert %{data: ^data} = message
+      %Broadway.Message{data: ^data} = Google.pack(acknowledger, batch_mode, json)
 
       # proto
       {:ok, %{data: data}} = Message.encode(proto)
-
-      ref = Google.test_message(test_name, proto)
-      assert_receive {:ack, ^ref, [message] = _successful, [] = _failed}, 2000
-      assert %{data: ^data} = message
+      %Broadway.Message{data: ^data} = Google.pack(acknowledger, batch_mode, proto)
     end
 
-    test "metadata is set correctly", %{json_message: json, proto_message: proto, test: test_name} do
+    test "metadata is set correctly", %{
+      acknowledger: acknowledger,
+      batch_mode: batch_mode,
+      json_message: json,
+      proto_message: proto
+    } do
       # json message
       event_id = json.metadata.event_id
       published_at = json.metadata.published_at
@@ -211,8 +230,7 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
       topic = json.metadata.topic
       service = json.metadata.service
 
-      ref = Google.test_message(test_name, json)
-      assert_receive {:ack, ^ref, [message] = _successful, [] = _failed}, 2000
+      message = Google.pack(acknowledger, batch_mode, json)
       # event id and publish time get put as top level keys in metadata
       assert %{metadata: %{messageId: ^event_id, publishTime: ^published_at, attributes: attrs}} = message
       # all other keys go in attributes as string keys
@@ -231,8 +249,7 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
       topic = proto.metadata.topic
       service = proto.metadata.service
 
-      ref = Google.test_message(test_name, proto)
-      assert_receive {:ack, ^ref, [message] = _successful, [] = _failed}, 2000
+      message = Google.pack(acknowledger, batch_mode, proto)
       # same top level keys check as json
       assert %{metadata: %{messageId: ^event_id, publishTime: ^published_at, attributes: attrs}} = message
       # same attributes check as json

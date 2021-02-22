@@ -13,6 +13,9 @@ defmodule GenesisPubSub.Adapter do
   alias GenesisPubSub.Message
   alias GenesisPubSub.Producer
 
+  @type acknowledger :: {module(), ack_ref :: term(), data :: term()}
+  @type batch_mode :: :bulk | :flush
+
   @doc """
   Publishes a message through an external PubSub system and decorates message
   with publish time metadata.
@@ -46,22 +49,13 @@ defmodule GenesisPubSub.Adapter do
   @callback unpack(Broadway.Message.t()) :: Message.published_t()
 
   @doc """
-  Converts a message and sends it through `Broadway.test_message/3`.
+  Convert a `GenesisPubSub.Message` into a `Broadway.Message`.
 
-  Broadway has testing utilities to generate broadway messages and send them
-  through a pipeline as a way of testing consumers.
-
-      Broadway.test_message(MyBroadwayConsumer, "some data", opts)
-
-  This function wraps that utility by allowing the passing of a `Message` struct
-  instead of data and options.
-
-      message = Message.new(data: %{account_id: "123"})
-      GenesisPubSub.Adapter.Google.test_message(MyBroadwayConsumer, message)
-
-  Each adapter might store data differently in the metadata field of a broadway
-  message so this callback allows an adapter to set up the broadway message to
-  ensure that `unpack/1` will work on the produced broadway message.
+  This is used for testing to support the `Consumer.test_message/2` and
+  `Consumer.test_batch/2` functions which take in a Message and dispatch
+  it through a Broadway Pipeline. Since each adapter might shape metadata
+  differently in a message this gives each adapter a chance to put things into
+  the correct shape so that `c:unpack/1` will run properly.
   """
-  @callback test_message(module(), Message.published_t()) :: reference()
+  @callback pack(acknowledger(), batch_mode(), Message.published_t()) :: Broadway.Message.t()
 end
