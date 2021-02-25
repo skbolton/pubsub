@@ -62,6 +62,7 @@ defmodule GenesisPubSub.Producer do
     end
   end
 
+  @doc false
   defdelegate child_spec(opts), to: Producer.Server
 
   def start_link(%Config{} = config) do
