@@ -1,7 +1,7 @@
 defmodule GenesisPubSub.ProducerTest do
   use ExUnit.Case, async: true
   import Hammox
-  alias GenesisPubSub.Adapter.Local
+  alias GenesisPubSub.Adapter.Testing
   alias GenesisPubSub.Message
   alias GenesisPubSub.Producer
   alias GenesisPubSub.SchemaSpec
@@ -71,7 +71,7 @@ defmodule GenesisPubSub.ProducerTest do
     test "sending single message through adapter", %{message: message, producer_params: producer_params} do
       expect(MockAdapter, :publish, fn topic, message ->
         # keep same adapter behaviour contract
-        Local.publish(topic, message)
+        Testing.publish(topic, message)
       end)
 
       Producer.publish(producer_params.name, message)
@@ -81,7 +81,7 @@ defmodule GenesisPubSub.ProducerTest do
       messages = [message, Message.follow(message)]
 
       expect(MockAdapter, :publish, fn topic, [%Message{}, %Message{}] = message_list ->
-        Local.publish(topic, message_list)
+        Testing.publish(topic, message_list)
       end)
 
       Producer.publish(producer_params.name, messages)
@@ -100,7 +100,7 @@ defmodule GenesisPubSub.ProducerTest do
         refute message.metadata.service == nil
 
         # keep same adapter behaviour contract
-        Local.publish(topic, message)
+        Testing.publish(topic, message)
       end)
 
       Producer.publish(producer_params.name, message)

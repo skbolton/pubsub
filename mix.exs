@@ -4,7 +4,7 @@ defmodule GenesisPubSub.MixProject do
   def project do
     [
       app: :genesis_pubsub,
-      version: "0.7.0",
+      version: "0.8.0",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -12,6 +12,7 @@ defmodule GenesisPubSub.MixProject do
       source_url: "https://github.com/genesisblockhq/pubsub",
       docs: docs(),
       package: package(),
+      elixirc_paths: elixirc_paths(Mix.env()),
       test_coverage: [tool: ExCoveralls],
       test_paths: ["lib"],
       dialyzer: [
@@ -31,6 +32,10 @@ defmodule GenesisPubSub.MixProject do
     ]
   end
 
+  # Specifies which paths to compile per environment.
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
+
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
@@ -40,12 +45,12 @@ defmodule GenesisPubSub.MixProject do
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
+      {:goth, "~> 1.2.0"},
       {:hammox, "~> 0.3", only: [:test]},
       {:jason, "~> 1.2"},
-      {:tesla, "~> 1.3"},
-      {:uuid, "~> 1.1"},
       {:protobuf, "~> 0.7.1", only: [:test, :dev]},
-      {:telemetry, "~> 0.4"}
+      {:tesla, "~> 1.3"},
+      {:uuid, "~> 1.1"}
     ]
   end
 
@@ -65,7 +70,7 @@ defmodule GenesisPubSub.MixProject do
         Adapters: [
           GenesisPubSub.Adapter,
           GenesisPubSub.Adapter.Google,
-          GenesisPubSub.Adapter.Local
+          GenesisPubSub.Adapter.GoogleLocal
         ]
       ]
     ]

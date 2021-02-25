@@ -21,6 +21,7 @@ defmodule GenesisPubSub.Adapter.Google.Mock do
   """
   alias GenesisPubSub.Adapter.Google
   alias GenesisPubSub.Message
+
   @behaviour GenesisPubSub.Adapter
 
   @impl GenesisPubSub.Adapter
@@ -52,4 +53,9 @@ defmodule GenesisPubSub.Adapter.Google.Mock do
 
   @impl GenesisPubSub.Adapter
   defdelegate pack(acknowledger, batch_mode, message), to: Google
+
+  @impl GenesisPubSub.Adapter
+  def broadway_producer(_opts) do
+    [module: {Broadway.DummyProducer, []}]
+  end
 end

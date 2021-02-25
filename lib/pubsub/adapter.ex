@@ -58,4 +58,11 @@ defmodule GenesisPubSub.Adapter do
   the correct shape so that `c:unpack/1` will run properly.
   """
   @callback pack(acknowledger(), batch_mode(), Message.published_t()) :: Broadway.Message.t()
+
+  @doc """
+  Returns the options necessary for the broadway producer key.
+
+  See docs in the adapter for opts values.
+  """
+  @callback broadway_producer(keyword()) :: keyword()
 end

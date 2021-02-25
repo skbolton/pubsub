@@ -40,20 +40,16 @@ defmodule GenesisPubSub.Adapter.Google do
 
   """
   alias GenesisPubSub.Adapter.Google.HTTPClient
-  alias GenesisPubSub.{Message, SchemaSpec}
+  alias GenesisPubSub.Message
   alias GenesisPubSub.Message.Metadata
+  alias GenesisPubSub.SchemaSpec
 
   @behaviour GenesisPubSub.Adapter
 
-  def auth() do
+  def auth_provider() do
     :genesis_pubsub
     |> Application.get_env(__MODULE__, [])
     |> Keyword.get(:auth_provider, Goth)
-  end
-
-  def base_url() do
-    # we use http to send it through the istio proxy
-    Application.get_env(:google_api_pub_sub, :base_url, "https://pubsub.googleapis.com")
   end
 
   @impl GenesisPubSub.Adapter
@@ -168,5 +164,26 @@ defmodule GenesisPubSub.Adapter.Google do
     message
     |> Message.put_meta(:event_id, id)
     |> Message.put_meta(:published_at, DateTime.utc_now())
+  end
+
+  @impl GenesisPubSub.Adapter
+  @doc """
+  Returns the options necessary for the broadway producer key.
+
+  Only the `:subscription` opt is required, however, it is recommended to also set the `:topic` opt
+  to be compatible with the `GenesisPubSub.Adapater.GoogleLocal` adapter to enable creating
+  topics and subscriptions in dev environments.
+  """
+  def broadway_producer(opts) do
+    config = Module.concat(auth_provider(), Config)
+    {:ok, project_id} = config.get(:project_id)
+    subscription = Keyword.fetch!(opts, :subscription)
+
+    [
+      module: {
+        BroadwayCloudPubSub.Producer,
+        subscription: "projects/#{project_id}/subscriptions/#{subscription}"
+      }
+    ]
   end
 end

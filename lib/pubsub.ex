@@ -15,9 +15,11 @@ defmodule GenesisPubSub do
   In order for these components to work they need an adapter to talk to an
   external pub/sub system. The available adapters are as follows.
 
-    * `GenesisPubSub.Adapter.Google` - using gcloud pubsub as an external system
-    
-    * `GenesisPubSub.Adapter.Local` - for debugging and testing
+    * `GenesisPubSub.Adapter.Google` - using google pubsub as an external system
+
+    * `GenesisPubSub.Adapter.GoogleLocal` - for local dev, uses google pubsub (or emulator) and handles setup of topics and subscriptions
+
+    * `GenesisPubSub.Adapter.Testing` - for debugging and testing
 
   > `GenesisPubSub.Adapter` has details around implementing new adapters.
 
@@ -82,7 +84,7 @@ defmodule GenesisPubSub do
 
   To consume messages we need to configure a consumer. Most of the heavy lifting
   is done by leveraging `Broadway`. The only extra step that is needed is to
-  transform the `Broadway.Message` given to us by Broadway into a 
+  transform the `Broadway.Message` given to us by Broadway into a
   `GenesisPubSub.Message`. This can be done by calling the
   `GenesisPubSub.Consumer.unpack/1` function in our Broadway pipeline. We want to
   work with `GenesisPubSub.Message` structs so that we can leverage the message

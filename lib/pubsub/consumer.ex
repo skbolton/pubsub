@@ -59,4 +59,10 @@ defmodule GenesisPubSub.Consumer do
     :ok = Broadway.push_messages(broadway_module, broadway_messages)
     ref
   end
+
+  @spec broadway_producer(keyword()) :: keyword()
+  @doc "Calls broadway_produer on the configured adapter, see `c:GenesisPubSub.Adapter.broadway_producer/1`"
+  def broadway_producer(opts \\ []) do
+    GenesisPubSub.adapter().broadway_producer(opts)
+  end
 end

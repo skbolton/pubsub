@@ -1,4 +1,4 @@
-defmodule GenesisPubSub.Adapter.Local do
+defmodule GenesisPubSub.Adapter.Testing do
   alias GenesisPubSub.Message
   alias GenesisPubSub.SchemaSpec
 
@@ -52,5 +52,10 @@ defmodule GenesisPubSub.Adapter.Local do
       acknowledger: acknowledger,
       batch_mode: batch_mode
     }
+  end
+
+  @impl GenesisPubSub.Adapter
+  def broadway_producer(_opts) do
+    [module: {Broadway.DummyProducer, []}]
   end
 end

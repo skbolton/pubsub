@@ -5,6 +5,10 @@ config :genesis_pubsub,
   service: "testing",
   adapter: MockAdapter
 
-config :genesis_pubsub, GenesisPubSub.Adapter.Google, auth_provider: GenesisPubSub.Adapter.Google.LocalGoth
+config :genesis_pubsub, GenesisPubSub.Adapter.Google, auth_provider: GenesisPubSub.Adapter.Google.GothMock
 
-config :tesla, adapter: Tesla.Mock
+config :tesla, adapter: TeslaMock
+
+config :goth, disabled: true
+
+config :google_api_pub_sub, base_url: System.get_env("PUBSUB_EMULATOR_HOST", "http://localhost:8085")

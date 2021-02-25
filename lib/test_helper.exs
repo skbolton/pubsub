@@ -1,4 +1,3 @@
-Hammox.defmock(MockAdapter, for: GenesisPubSub.Adapter)
-Hammox.stub_with(MockAdapter, GenesisPubSub.Adapter.Local)
+Hammox.stub_with(MockAdapter, GenesisPubSub.Adapter.Testing)
 
 ExUnit.start()
