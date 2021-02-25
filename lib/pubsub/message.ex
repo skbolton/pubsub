@@ -159,10 +159,12 @@ defmodule GenesisPubSub.Message do
   Options:
 
   * `include` - list of fields to copy over into new events data
+
     If the previous message contains values the new event needs then this can be
     used to seed the new events data.
 
   * `exclude` - list of fields to exlude from copying over into new events data
+
     All other fileds will be copied over to new event. This option takes
     precedence over `include`.
 
@@ -302,15 +304,54 @@ defmodule GenesisPubSub.Message do
         # drop exclude keys from previous message
         exclude
         |> Enum.reduce(previous_message_data, fn exclude_key, params ->
-          Map.delete(params, exclude_key)
+          drop_key(params, exclude_key)
         end)
+        # previous message could have been string keyed if its json
+        # atomize keys
+        |> Enum.map(fn
+          {key, value} when is_binary(key) -> {String.to_atom(key), value}
+          {key, value} when is_atom(key) -> {key, value}
+        end)
+        |> Enum.into(%{})
 
       include != nil ->
         # take include keys from previous message
-        Map.take(previous_message_data, include)
+        include
+        |> Enum.map(fn key -> {key, take_key(previous_message_data, key)} end)
+        |> Enum.into(%{})
 
       true ->
         %{}
+    end
+  end
+
+  @spec take_key(map(), atom()) :: any()
+  # take key from map handling if key is an atom or a string key
+  defp take_key(map, key) do
+    cond do
+      Map.has_key?(map, key) ->
+        Map.get(map, key)
+
+      Map.has_key?(map, to_string(key)) ->
+        Map.get(map, to_string(key))
+
+      true ->
+        nil
+    end
+  end
+
+  @spec drop_key(map(), atom()) :: any()
+  # drop a key from a map handling whether it is a string or atom
+  defp drop_key(map, key) do
+    cond do
+      Map.has_key?(map, key) ->
+        Map.delete(map, key)
+
+      Map.has_key?(map, to_string(key)) ->
+        Map.delete(map, to_string(key))
+
+      true ->
+        map
     end
   end
 end
