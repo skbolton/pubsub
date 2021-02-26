@@ -172,7 +172,7 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
     test "message is returned" do
       event_id = UUID.uuid4()
       %{microsecond: {us, _precision}} = published_at = DateTime.utc_now()
-      google_formatted_published_at = published_at |> DateTime.truncate(:millisecond) |> DateTime.to_iso8601()
+      google_formatted_published_at = published_at |> DateTime.truncate(:millisecond)
 
       truncated_microseconds = Integer.floor_div(us, 1000) * 1000
       truncated_microseconds_published_at = %{published_at | microsecond: {truncated_microseconds, 6}}

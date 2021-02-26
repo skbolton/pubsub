@@ -117,7 +117,6 @@ defmodule GenesisPubSub.Adapter.Google do
       }) do
     # Google Pub/Sub sends published_at in milliseconds so we convert to microseconds
     # to be consistent with other timestamps
-    {:ok, published_at, 0} = DateTime.from_iso8601(published_at)
     %{microsecond: {us, _precision}} = published_at
     published_at = %{published_at | microsecond: {us, 6}}
 
