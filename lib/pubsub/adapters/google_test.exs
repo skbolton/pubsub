@@ -171,7 +171,11 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
   describe "unpack/1" do
     test "message is returned" do
       event_id = UUID.uuid4()
-      published_at = DateTime.utc_now()
+      %{microsecond: {us, _precision}} = published_at = DateTime.utc_now()
+      google_formatted_published_at = published_at |> DateTime.truncate(:millisecond) |> DateTime.to_iso8601()
+
+      truncated_microseconds = Integer.floor_div(us, 1000) * 1000
+      truncated_microseconds_published_at = %{published_at | microsecond: {truncated_microseconds, 6}}
 
       message =
         Message.new(
@@ -183,13 +187,13 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
 
       broadway_message = %Broadway.Message{
         data: data,
-        metadata: %{attributes: meta, messageId: event_id, publishTime: DateTime.to_iso8601(published_at)},
+        metadata: %{attributes: meta, messageId: event_id, publishTime: google_formatted_published_at},
         acknowledger: Broadway.NoopAcknowledger
       }
 
       %Message{data: data, metadata: metadata} = Google.unpack(broadway_message)
       assert %{"account_id" => "123"} = data
-      assert %Metadata{published_at: ^published_at, event_id: ^event_id} = metadata
+      assert %Metadata{published_at: ^truncated_microseconds_published_at, event_id: ^event_id} = metadata
     end
   end
 

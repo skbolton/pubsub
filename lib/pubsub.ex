@@ -106,10 +106,7 @@ defmodule GenesisPubSub do
         def start_link(_opts) do
           Broadway.start_link(__MODULE__,
             name: __MODULE__,
-            producer: [
-              # use whatever Broadway producer makes sense for your use case
-              module: {BroadwayCloudPubSub.Producer, subscription: "projects/my-project/subscriptions/accounts-opened"}
-            ]
+            producer: Consumer.broadway_producer(topic: "topic-name", subscription: "subscription-name")
           )
         end
 
