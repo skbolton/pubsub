@@ -122,7 +122,7 @@ defmodule GenesisPubSub.Adapter.Google do
 
     metadata =
       metadata_params
-      |> Map.put("event_id", event_id)
+      |> Map.put("adapter_event_id", event_id)
       |> Map.put("published_at", published_at)
       |> Metadata.from_encodable()
 
@@ -142,7 +142,7 @@ defmodule GenesisPubSub.Adapter.Google do
 
     broadway_metadata = %{
       # these keys are set as atoms in the top level metadata
-      messageId: message.metadata.event_id,
+      messageId: message.metadata.adapter_event_id,
       publishTime: message.metadata.published_at,
       # all other keys are set as string keys in an "attributes" map
       attributes: attributes
@@ -167,7 +167,7 @@ defmodule GenesisPubSub.Adapter.Google do
   # adapters are responsible for setting the following metadata fields
   def set_published_meta(message, id) do
     message
-    |> Message.put_meta(:event_id, id)
+    |> Message.put_meta(:adapter_event_id, id)
     |> Message.put_meta(:published_at, DateTime.utc_now())
   end
 

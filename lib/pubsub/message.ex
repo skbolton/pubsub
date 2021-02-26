@@ -16,15 +16,15 @@ defmodule GenesisPubSub.Message do
   helps support showing the connectedness and context around a message. Reading
   from `metadata` is allowed but it is very rare to have to write to the metadata
   field. Many of the functions in `Message` are designed to make handling of
-  metadata between two messages automatically. 
+  metadata between two messages automatically.
 
-  Instead of modifying or creating the struct directly, use the 
+  Instead of modifying or creating the struct directly, use the
   `GenesisPubSub.Message.new/1` or `GenesisPubSub.Message.follow/2` functions
   based on your use case.
 
   ## Message workflows
 
-  Developers working with messages should mostly focus on the `data` field of a 
+  Developers working with messages should mostly focus on the `data` field of a
   message. This is where all the business use case information goes, and is
   unique to each event. That said, its worth understanding what the metadata
   fields are accomplishing.
@@ -200,7 +200,7 @@ defmodule GenesisPubSub.Message do
   Updates data field of `message`.
 
   Second argument can either be a function that will receive the current data and
-  will update whatever is returned. Or it can be a new value to put in place of 
+  will update whatever is returned. Or it can be a new value to put in place of
   old data
 
       iex> message = Message.new(data: %{account_id: "123"})
@@ -265,8 +265,8 @@ defmodule GenesisPubSub.Message do
   doing.
 
         iex> message = Message.new()
-        iex> message = Message.put_meta(message, :event_id, "123")
-        iex> message.metadata.event_id
+        iex> message = Message.put_meta(message, :adapter_event_id, "123")
+        iex> message.metadata.adapter_event_id
         "123"
   """
   def put_meta(%__MODULE__{metadata: meta} = message, key, value) do

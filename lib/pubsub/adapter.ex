@@ -21,7 +21,7 @@ defmodule GenesisPubSub.Adapter do
   with publish time metadata.
 
   Messages can manage their own serialization. See: `Message.encode/1` for how
-  to encode a message. Upon successful publishing of a message the `:event_id`
+  to encode a message. Upon successful publishing of a message the `:adapter_event_id`
   and `:published_at` field should be added to message.
 
       %{data: encoded_data, metadata: encoded_meta} = Message.encode(message)
@@ -29,7 +29,7 @@ defmodule GenesisPubSub.Adapter do
       # ... snip ....
       # decorate message with additional metadata
       message = message
-      |> Message.put_meta(:event_id, "unique identifier")
+      |> Message.put_meta(:adapter_event_id, "unique identifier")
       |> Message.put_meta(:published_at, DateTime.utc_now())
 
       {:ok, message}

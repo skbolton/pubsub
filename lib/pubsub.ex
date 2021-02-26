@@ -136,7 +136,7 @@ defmodule GenesisPubSub do
   step would be to read the `GenesisPubSub.Message` documentation to understand
   message workflows.
   """
-  @type uuid :: String.t()
+  @type uuid :: <<_::288>>
 
   @doc "Returns configured json_codec library"
   def json_codec(), do: Application.get_env(:genesis_pubsub, :json_codec, Jason)

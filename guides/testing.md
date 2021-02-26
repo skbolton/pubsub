@@ -135,7 +135,7 @@ test "message is handled", context do
   message = GenesisPubSub.Message.new(
     data: %{account_id: "123"},
     metadata: %{
-      event_id: UUID.uuid4(),
+      adapter_event_id: UUID.uuid4(),
       published_at: DateTime.utc_now(),
       service: "testing",
       topic: "some-topic"

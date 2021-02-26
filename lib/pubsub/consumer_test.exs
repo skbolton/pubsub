@@ -41,6 +41,7 @@ defmodule GenesisPubSub.ConsumerTest do
         Message.new(
           metadata: %{
             event_id: UUID.uuid4(),
+            adapter_event_id: UUID.uuid4(),
             published_at: DateTime.utc_now(),
             schema: SchemaSpec.json(),
             service: "testing",
@@ -87,6 +88,7 @@ defmodule GenesisPubSub.ConsumerTest do
         Message.new(
           metadata: %{
             event_id: UUID.uuid4(),
+            adapter_event_id: UUID.uuid4(),
             published_at: DateTime.utc_now(),
             schema: SchemaSpec.json(),
             service: "testing",
@@ -96,6 +98,7 @@ defmodule GenesisPubSub.ConsumerTest do
         Message.new(
           metadata: %{
             event_id: UUID.uuid4(),
+            adapter_event_id: UUID.uuid4(),
             published_at: DateTime.utc_now(),
             schema: SchemaSpec.json(),
             service: "testing",

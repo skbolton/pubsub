@@ -43,7 +43,7 @@ defmodule GenesisPubSub.Message.MetadataTest do
 
       metadata =
         Metadata.new(%{
-          event_id: event_id,
+          adapter_event_id: event_id,
           correlation_id: correlation_id,
           causation_id: causation_id,
           service: service,
@@ -67,7 +67,9 @@ defmodule GenesisPubSub.Message.MetadataTest do
 
   describe "from_encodable/1" do
     setup do
-      metadata = Metadata.new(%{event_id: UUID.uuid4(), schema: SchemaSpec.json(), published_at: DateTime.utc_now()})
+      metadata =
+        Metadata.new(%{adapter_event_id: UUID.uuid4(), schema: SchemaSpec.json(), published_at: DateTime.utc_now()})
+
       encoded = Metadata.to_encodable(metadata)
 
       {:ok, metadata: metadata, encoded_metadata: encoded}

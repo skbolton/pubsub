@@ -9,7 +9,7 @@ defmodule GenesisPubSub.Adapter.Google.MockTest do
       message = Message.new(data: %{field: "value"})
 
       assert {:ok, published} = Mock.publish("some-topic", message)
-      assert Map.has_key?(published.metadata, :event_id)
+      assert Map.has_key?(published.metadata, :adapter_event_id)
       assert Map.has_key?(published.metadata, :published_at)
     end
 
@@ -19,8 +19,8 @@ defmodule GenesisPubSub.Adapter.Google.MockTest do
 
       assert {:ok, [first_published, second_published]} = Mock.publish("some-topic", [message, next_message])
 
-      assert Map.has_key?(first_published.metadata, :event_id)
-      assert Map.has_key?(second_published.metadata, :event_id)
+      assert Map.has_key?(first_published.metadata, :adapter_event_id)
+      assert Map.has_key?(second_published.metadata, :adapter_event_id)
 
       assert Map.has_key?(first_published.metadata, :published_at)
       assert Map.has_key?(second_published.metadata, :published_at)
@@ -56,7 +56,7 @@ defmodule GenesisPubSub.Adapter.Google.MockTest do
 
       # verify that published message is sent through
       assert_receive {[:genesis_pubsub, :publish, :end], _measurements,
-                      %{messages: [%{metadata: %{event_id: id}}], topic: ^topic}, nil}
+                      %{messages: [%{metadata: %{adapter_event_id: id}}], topic: ^topic}, nil}
 
       # verify that we sent published message through
       assert id != nil
@@ -82,7 +82,10 @@ defmodule GenesisPubSub.Adapter.Google.MockTest do
       # verify that published message is sent through
       assert_receive {[:genesis_pubsub, :publish, :end], _measurements,
                       %{
-                        messages: [%{metadata: %{event_id: first_id}}, %{metadata: %{event_id: second_id}}],
+                        messages: [
+                          %{metadata: %{adapter_event_id: first_id}},
+                          %{metadata: %{adapter_event_id: second_id}}
+                        ],
                         topic: ^topic
                       }, nil}
 

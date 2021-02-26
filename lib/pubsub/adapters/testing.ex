@@ -12,6 +12,7 @@ defmodule GenesisPubSub.Adapter.Testing do
       Enum.map(messages, fn message ->
         message
         |> Message.put_meta(:event_id, UUID.uuid4())
+        |> Message.put_meta(:adapter_event_id, UUID.uuid4())
         |> Message.put_meta(:published_at, DateTime.utc_now())
       end)
 
@@ -23,6 +24,7 @@ defmodule GenesisPubSub.Adapter.Testing do
     published_message =
       message
       |> Message.put_meta(:event_id, UUID.uuid4())
+      |> Message.put_meta(:adapter_event_id, UUID.uuid4())
       |> Message.put_meta(:published_at, DateTime.utc_now())
 
     {:ok, published_message}
@@ -35,6 +37,7 @@ defmodule GenesisPubSub.Adapter.Testing do
       data: data,
       metadata: %{
         event_id: UUID.uuid4(),
+        adapter_event_id: UUID.uuid4(),
         created_at: DateTime.utc_now(),
         published_at: DateTime.utc_now(),
         topic: "a-topic",

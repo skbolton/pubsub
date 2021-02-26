@@ -49,6 +49,7 @@ defmodule GenesisPubSub.TelemetryTest do
         Message.new(
           metadata: %{
             event_id: UUID.uuid4(),
+            adapter_event_id: UUID.uuid4(),
             schema: GenesisPubSub.SchemaSpec.json(),
             topic: topic,
             service: "a-service"

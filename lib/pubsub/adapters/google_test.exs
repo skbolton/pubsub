@@ -115,15 +115,15 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
       end)
 
       {:ok, message} = Google.publish("a-topic", message)
-      assert %{metadata: %{event_id: ^event_id, published_at: %DateTime{}}} = message
+      assert %{metadata: %{adapter_event_id: ^event_id, published_at: %DateTime{}}} = message
 
       first_message = message
       second_message = Message.follow(message) |> Message.put_meta(:schema, SchemaSpec.json())
 
       {:ok, [message_one, message_two]} = Google.publish("a-topic", [first_message, second_message])
 
-      assert %{metadata: %{event_id: ^first_event, published_at: %DateTime{}}} = message_one
-      assert %{metadata: %{event_id: ^second_event, published_at: %DateTime{}}} = message_two
+      assert %{metadata: %{adapter_event_id: ^first_event, published_at: %DateTime{}}} = message_one
+      assert %{metadata: %{adapter_event_id: ^second_event, published_at: %DateTime{}}} = message_two
     end
 
     test "multiple messages are handled correctly", %{message: message} do
@@ -180,7 +180,7 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
       message =
         Message.new(
           data: %{account_id: "123"},
-          metadata: %{event_id: event_id, published_at: DateTime.utc_now(), schema: SchemaSpec.json()}
+          metadata: %{adapter_event_id: event_id, published_at: DateTime.utc_now(), schema: SchemaSpec.json()}
         )
 
       {:ok, %{data: data, metadata: meta}} = Message.encode(message)
@@ -193,7 +193,7 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
 
       %Message{data: data, metadata: metadata} = Google.unpack(broadway_message)
       assert %{"account_id" => "123"} = data
-      assert %Metadata{published_at: ^truncated_microseconds_published_at, event_id: ^event_id} = metadata
+      assert %Metadata{published_at: ^truncated_microseconds_published_at, adapter_event_id: ^event_id} = metadata
     end
   end
 
@@ -206,6 +206,7 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
           metadata: %{
             correlation_id: UUID.uuid4(),
             event_id: UUID.uuid4(),
+            adapter_event_id: UUID.uuid4(),
             published_at: DateTime.utc_now(),
             schema: SchemaSpec.json(),
             service: "testing",
@@ -219,6 +220,7 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
           metadata: %{
             correlation_id: UUID.uuid4(),
             event_id: UUID.uuid4(),
+            adapter_event_id: UUID.uuid4(),
             published_at: DateTime.utc_now(),
             schema: SchemaSpec.proto(TestProto),
             service: "testing",
@@ -267,7 +269,7 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
       proto_message: proto
     } do
       # json message
-      event_id = json.metadata.event_id
+      event_id = json.metadata.adapter_event_id
       published_at = json.metadata.published_at
       correlation_id = json.metadata.correlation_id
       causation_id = json.metadata.causation_id
@@ -286,7 +288,7 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
              } = attrs
 
       # proto
-      event_id = proto.metadata.event_id
+      event_id = proto.metadata.adapter_event_id
       published_at = proto.metadata.published_at
       correlation_id = proto.metadata.correlation_id
       causation_id = proto.metadata.causation_id
@@ -382,7 +384,10 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
       # verify that published message is sent through
       assert_receive {[:genesis_pubsub, :publish, :end], _measurements,
                       %{
-                        messages: [%{metadata: %{event_id: first_id}}, %{metadata: %{event_id: second_id}}],
+                        messages: [
+                          %{metadata: %{adapter_event_id: first_id}},
+                          %{metadata: %{adapter_event_id: second_id}}
+                        ],
                         topic: ^topic
                       }, nil}
 
