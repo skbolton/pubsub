@@ -137,7 +137,7 @@ defmodule GenesisPubSub.Adapter.Google do
 
     attributes =
       meta
-      |> Map.take(~w(correlation_id causation_id topic service schema_type schema_encoder))
+      |> Map.take(~w(correlation_id causation_id created_at event_id topic service schema_type schema_encoder))
       |> Enum.into(%{})
 
     broadway_metadata = %{
