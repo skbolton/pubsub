@@ -8,6 +8,9 @@ defmodule GenesisPubSub.Adapter.Google.HTTPClient do
 
   alias GenesisPubSub.Adapter.Google
   alias GenesisPubSub.Producer
+  alias GoogleApi.PubSub.V1.Api.Projects
+  alias GoogleApi.PubSub.V1.Connection
+  alias GoogleApi.PubSub.V1.Model.Subscription
 
   @type encoded_message :: %{
           data: String.t(),
@@ -35,6 +38,57 @@ defmodule GenesisPubSub.Adapter.Google.HTTPClient do
     publish(topic, [message])
   end
 
+  def get_topic(topic_name) do
+    config = Module.concat(Google.auth_provider(), Config)
+
+    with {:ok, project_id} <- config.get(:project_id),
+         connection <- google_conn() do
+      Projects.pubsub_projects_topics_get(connection, project_id, topic_name)
+    end
+  end
+
+  def create_topic(topic_name) do
+    config = Module.concat(Google.auth_provider(), Config)
+
+    with {:ok, project_id} <- config.get(:project_id),
+         connection <- google_conn() do
+      # must set a non empty body or pubsub complains
+      Projects.pubsub_projects_topics_create(connection, project_id, topic_name, body: %{labels: %{local: true}})
+    end
+  end
+
+  def list_subscriptions(opts \\ []) do
+    config_mod = Module.concat(Google.auth_provider(), Config)
+
+    with {:ok, project_id} <- config_mod.get(:project_id),
+         connection <- google_conn() do
+      Projects.pubsub_projects_subscriptions_list(connection, project_id, opts)
+    end
+  end
+
+  def get_subscription(subscription) do
+    config_mod = Module.concat(Google.auth_provider(), Config)
+
+    with {:ok, project_id} <- config_mod.get(:project_id),
+         connection <- google_conn() do
+      Projects.pubsub_projects_subscriptions_get(connection, project_id, subscription)
+    end
+  end
+
+  def create_subscription(topic, subscription) do
+    config_mod = Module.concat(Google.auth_provider(), Config)
+
+    with {:ok, project_id} <- config_mod.get(:project_id),
+         connection <- google_conn() do
+      Projects.pubsub_projects_subscriptions_create(
+        connection,
+        project_id,
+        subscription,
+        body: %Subscription{topic: "projects/#{project_id}/topics/#{topic}"}
+      )
+    end
+  end
+
   defp base_url() do
     Application.get_env(:google_api_pub_sub, :base_url, "https://pubsub.googleapis.com")
   end
@@ -52,4 +106,10 @@ defmodule GenesisPubSub.Adapter.Google.HTTPClient do
   defp parse_response({:ok, %Tesla.Env{body: %{"messageIds" => message_ids}}}), do: {:ok, %{messageIds: message_ids}}
 
   defp parse_response({:error, _reason} = error), do: error
+
+  defp google_conn() do
+    token_mod = Module.concat(Google.auth_provider(), Token)
+    {:ok, %{token: token}} = token_mod.for_scope("https://www.googleapis.com/auth/pubsub")
+    Connection.new(token)
+  end
 end

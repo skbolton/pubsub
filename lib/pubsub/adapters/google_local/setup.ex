@@ -6,7 +6,7 @@ defmodule GenesisPubSub.Adapter.GoogleLocal.Setup do
   WARNING!: This is only for dev utilities. All topics and subscriptions should
   be created in terraform for production use.
   """
-  alias GenesisPubSub.Adapter.GoogleLocal.HTTPClient
+  alias GenesisPubSub.Adapter.Google.HTTPClient
   alias GoogleApi.PubSub.V1.Model.Subscription
   alias GoogleApi.PubSub.V1.Model.Topic
 
