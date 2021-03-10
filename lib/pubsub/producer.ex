@@ -69,7 +69,7 @@ defmodule GenesisPubSub.Producer do
     Producer.Server.start_link(config)
   end
 
-  @spec publish(pid() | atom(), Message.unpublished_t()) :: {:ok, Message.published_t()}
+  @spec publish(pid() | atom(), Message.unpublished_t()) :: {:ok, Message.published_t()} | {:error, any()}
   @doc """
   Publish a single `message` or a list of `message` through `producer`.
   """
