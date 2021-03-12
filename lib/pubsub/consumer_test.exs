@@ -152,15 +152,4 @@ defmodule GenesisPubSub.ConsumerTest do
       assert_receive {:ack, ^ref, _successful, _failed}, 2000
     end
   end
-
-  describe "broadway_producer/1" do
-    test "dummy producer" do
-      Hammox.expect(MockAdapter, :broadway_producer, fn opts ->
-        Testing.broadway_producer(opts)
-      end)
-
-      assert [module: {Broadway.DummyProducer, []}] ==
-               Consumer.broadway_producer(topic: "test-topic", subscription: "test-subscription")
-    end
-  end
 end

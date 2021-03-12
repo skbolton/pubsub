@@ -2,7 +2,7 @@
 
 GenesisPubSub was designed to work well with [Mox](https://hexdocs.pm/mox) and the following guide will assume that you are somewhat familiar with it.
 
-To start, we can configure Mox to create a mock for the `GenesisPubSub.Adapter` behaviour. Next, we set the Mox mock to be the configured adapter. This will allow us to define expectations for how the adapter was called when testing Producers and Consumers.
+To start we need to update configuration options to support testing. First, we configure our `GenesisPubSub.Adapter` behaviour to be a Mox defined mock. This allows us to define expectations for how the adapter was called when testing Producers and Consumers. Next, we enable test_mode? which will help in testing our consumers. See "Consumers".
 
 ```elixir
 # in some test support file
@@ -10,7 +10,8 @@ Mox.defmock(PubSubAdapterMock, for: GenesisPubSub.Adapter)
 
 # config/test.exs
 config :genesis_pubsub,
-  adapter: PubSubAdapterMock
+  adapter: PubSubAdapterMock,
+  test_mode?: true
 ```
 
 Also, each adapter provides a `Mock` version that keeps the same overall behaviour as the real adapter, without reaching out to any external system. This Mock can be great with Mox stubs or expectations to make sure that the correct values are being returned from Mox calls.
@@ -42,84 +43,67 @@ test "correct topic is published to" do
     # return proper value
     GenesisPubSub.Adapter.Google.Mock.publish(producer, message)
   end)
-  
+
   BusinessLogic.execute()
 end
 ```
 
 ## Consumers
 
-Consumers add a little bit more complexity since they are defined as [Broadway](https://hexdocs.pm/broadway) pipelines with many processes involved. Mox stubs and assertions have to be [configured](https://hexdocs.pm/mox/Mox.html#module-multi-process-collaboration) to be shared between processes. The alternative is to use Mox global mode, but this causes you to need to run test in `async: false` - making tests run much slower. With a little extra work we can ensure that our tests can still run in parallel and we can define assertions on our mocks.
+Consumers add a little bit more complexity since they are defined as [Broadway](https://hexdocs.pm/broadway) pipelines with many processes involved. Mox stubs and assertions have to be [configured](https://hexdocs.pm/mox/Mox.html#module-multi-process-collaboration) to be shared between processes. The alternative is to use Mox global mode, but this causes you to need to run test in `async: false` - making tests run much slower. With a little extra work we can ensure that our tests can still run in parallel and we can define assertions on our mocks. With the `test_mode?` flag enabled in config we use the `DummyProducer` provided by Broadway and set `:batch_timeout` to `1` so that tests will not take longer than they should waiting for messages.
 
-Our first step is making sure we can spawn unique versions of our broadway consumers for every test file. This means we need to make the `name` option that the test can pass in.
-
-```elixir
-defmodule MyApp.MyConsumer do
-  use Broadway
-  
-  def start_link(opts) do
-    Broadway.start_link(__MODULE__,
-      name: Keyword.get(opts, :name, __MODULE__),
-      # ... other broadway options
-    )
-  end
-end
-```
-
-Now each test can spawn this process using its unique test name.
+Our first step is making sure we can spawn unique versions of our broadway consumers for every test file. This means we need to specify a unique `name` option that we can get from the test.
 
 ```elixir
-# in a test file
 setup context do
   # context.test holds the name of each test, which has to be unique
-  start_supervised!({MyApp.MyConsumer, name: context.test})
-  
-  :ok
+  {:ok, pid} = MyApp.MyConsumer.start_link(name: context.test, context: %{allow: allow})
+
+  {:ok, %{consumer: pid}}
 end
 ```
 
 With this a unique process exists that our pipeline is running in per test. The issue we now face is our test process being a separate one from the pipeline process. If we were to define expectations on our mock it would result in a Mox error since the other process is what is actually calling our mock.
 
 ```elixir
-Mox.stub(PubSubAdapterMock, :unpack, &GenesisPubSub.Adapter.Google.Mock.unpack/1)
+test "...", %{consumer: consumer}
+  Mox.stub(PubSubAdapterMock, :unpack, &GenesisPubSub.Adapter.Google.Mock.unpack/1)
 
-# Mox will spit out an exception
-GenesisPubSub.Consumer.test_message(MyApp.MyConsumer, Message.new(...))
-```
-
-The solution is to pass a pid to our pipeline so that a hook can be called to share expectations between our test and the pipeline process. Broadway provides a `context` key that can be set on your consumer to store the pid.
-
-
-```elixir
-defmodule MyApp.MyConsumer do
-  use Broadway
-  
-  def start_link(opts) do
-    Broadway.start_link(__MODULE__,
-      name: Keyword.get(opts, :name, __MODULE__),
-      # ... other broadway options
-      context: %{
-        test_pid: Keyword.get(opts, :test_pid)
-      }
-    )
-  end
-  
-  def handle_message(_processor, message, context) do
-    if context.test_pid do
-      Mox.allow(PubSubAdapterMock, context.test_pid, self())
-    end
-    
-    # other consumer logic ....
-  end
+  # Mox will spit out an exception
+  GenesisPubSub.Consumer.test_message(consumer, Message.new(...))
 end
 ```
 
-The `test_pid` naming choice used is arbitrary - use whatever name you like. Now in our test we can spawn the pipeline process and pass the pid of the test in.
+The solution is to pass a function that allows the processes we need to interact with our pipeline process. Broadway provides a `context` key that can be set on your consumer to store the function.
 
 ```elixir
-Mox.stub_with(PubSubAdapterMock, GenesisPubSub.Adapter.Google.Mock)
+setup context do
+  :ok = Sandbox.checkout(Repo)
 
-start_supervised!({MyApp.MyConsumer, name: context.test, test_pid: self()})
+  # set self outside of function to get current process
+  self = self()
+
+  allow = fn pid ->
+    :ok = Sandbox.allow(Repo, self, pid)
+    Mox.allow(PubSubAdapterMock, self, pid)
+  end
+
+  {:ok, pid} = MyApp.MyConsumer.start_link(name: context.test, context: %{allow: allow})
+
+  {:ok, %{consumer: pid}}
+end
+```
+
+```elixir
+defmodule MyApp.MyConsumer do
+  use GenesisPubSub.Consumer, ...
+
+  def handle_message(_processor, message, context) do
+    allow(context, self())
+
+    # other consumer logic ....
+  end
+end
 ```
 
 ## Running the Consumer
@@ -152,27 +136,17 @@ end
 
 ```elixir
 defmodule MyApp.MyConsumer do
-  def start_link(opts) do
-    Broadway.start_link(__MODULE__,
-      name: Keyword.get(opts, :name, __MODULE__),
-      producer: [
-        module: {BroadwayDummyProducer, []}
-      ],
-      context: %{
-        test_pid: Keyword.get(opts, :test_pid)
-      }
-    )
-  end
-  
+  use GenesisPubSub.Consumer,
+    topic: "card-transactions.transaction-processed",
+    subscription: "card-transactions.transaction-sanitization"
+
   def handle_message(_processor, message, context) do
-    if context.test_pid do
-      Mox.allow(PubSubAdapterMock, context.test_pid, self())
-    end
-    
+    allow(context, self())
+
     message
     |> GenesisPubSub.Consumer.unpack()
     |> BusinessLogic.execute()
-    
+
     message
   end
 end

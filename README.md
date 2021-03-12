@@ -11,7 +11,7 @@ mix hex.organization auth genesisblock --key <'Private Hex Key' from 1password>
 ```elixir
 def deps do
   [
-    {:genesis_pubsub, "~> 0.8.7", organization: "genesisblock"}
+    {:genesis_pubsub, "~> 0.9.0", organization: "genesisblock"}
   ]
 end
 ```
