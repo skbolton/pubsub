@@ -48,7 +48,7 @@ defmodule GenesisPubSub.Consumer do
         batch_timeout =
           if test_mode?,
             do: 1,
-            else: Keyword.get(opts, :batch_timeout)
+            else: Keyword.get(opts, :batch_timeout, 2000)
 
         default_broadway_opts = [
           name: __MODULE__,
