@@ -82,33 +82,27 @@ defmodule GenesisPubSub do
 
   ## Consumer
 
-  To consume messages we need to configure a consumer. Most of the heavy lifting
-  is done by leveraging `Broadway`. The only extra step that is needed is to
-  transform the `Broadway.Message` given to us by Broadway into a
-  `GenesisPubSub.Message`. This can be done by calling the
-  `GenesisPubSub.Consumer.unpack/1` function in our Broadway pipeline. We want to
-  work with `GenesisPubSub.Message` structs so that we can leverage the message
-  workflows they provide. See `GenesisPubSub.Message.follow/2`
+  To consume message we need to configure a consumer. Internally they are
+  implemented as `Broadway` modules that you configure and define the callbacks
+  for. The only extra step that is needed is to transform the `Broadway.Message`
+  given to us in the callbacks into a `GenesisPubSub.Message`. This can be done
+  by calling the `GenesisPubSub.Consumer.unpack/1` function in the callback. We
+  want to work with `GenesisPubSub.Message` structs so that we can leverage the
+  message workflows they provide. See `GenesisPubSub.Message.follow/2`
 
   Using the previous producer example that publishes account creation events we
   can create a consumer that would send out welcome emails as part of a marketing
   context.
 
       defmodule MyApp.Marketing.AccountCreatedConsumer do
-        use Broadway
+        # all options accepted by `Broadway.start_link/2` can be passed here as well
+        use GenesisPubSub.Consumer, topic: "topic-name", subscription: "subscription-name"
 
         alias Broadway.Message
         alias GenesisPubSub.Consumer
         alias GenesisPubSub.Message
 
         require Logger
-
-        def start_link(_opts) do
-          Broadway.start_link(__MODULE__,
-            name: __MODULE__,
-            producer: Consumer.broadway_producer(topic: "topic-name", subscription: "subscription-name")
-          )
-        end
 
         # Note how we unpack the broadway message into a GenesisPubSub message
         def handle_message(_processor_name, message, _context) do
