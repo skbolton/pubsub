@@ -5,7 +5,6 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   OTP_VERSION: 23.1.2
   ELIXIR_VERSION: 1.11.2
-  SSH_AUTH_SOCK: /tmp/ssh_agent.sock
 
 jobs:
   test:
@@ -21,11 +20,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@main
-      
-      - name: Setup SSH
-        run: |
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add - <<< "${{ secrets.READONLY_DEPLOY_KEY }}"
 
       - uses: actions/setup-elixir@main
         with:
@@ -63,11 +57,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@main
-      
-      - name: Setup SSH
-        run: |
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add - <<< "${{ secrets.READONLY_DEPLOY_KEY }}"
 
       - uses: actions/setup-elixir@main
         with:
@@ -99,11 +88,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@main
-      
-      - name: Setup SSH
-        run: |
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add - <<< "${{ secrets.READONLY_DEPLOY_KEY }}"
 
       - uses: actions/setup-elixir@main
         with:
@@ -145,11 +129,6 @@ jobs:
           otp-version: ${{ env.OTP_VERSION }}
           elixir-version: ${{ env.ELIXIR_VERSION }}
           experimental-otp: true
-      
-      - name: Setup SSH
-        run: |
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add - <<< "${{ secrets.READONLY_DEPLOY_KEY }}"
 
       - name: Cache Deps
         uses: actions/cache@main
@@ -184,11 +163,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@main
-      
-      - name: Setup SSH
-        run: |
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add - <<< "${{ secrets.READONLY_DEPLOY_KEY }}"
 
       - uses: actions/setup-elixir@main
         with:
@@ -214,3 +188,12 @@ jobs:
 
       - run: mix do deps.get, compile
       - run: mix format --check-formatted
+
+  git:
+    name: No git sources in mix.exs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+
+      - run: exit "$(grep -c "git:\|github:" mix.exs)"
