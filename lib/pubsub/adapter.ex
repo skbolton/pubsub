@@ -1,14 +1,6 @@
 defmodule GenesisPubSub.Adapter do
   @moduledoc """
   External pubsub systems implemenations.
-
-  ## Telemetry Events
-
-  As well as implementing the callbacks in `GenesisPubSub.Adapter` a proper
-  adapter needs to ensure that all telemetry events fired.
-  `GenesisPubSub.Telemetry` contains helpers for telemetry events. See
-  "Telemetry Events" guide for required telemetry events.
-
   """
   alias GenesisPubSub.Message
   alias GenesisPubSub.Producer

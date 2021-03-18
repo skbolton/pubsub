@@ -18,6 +18,7 @@ defmodule GenesisPubSub.Producer do
   alias GenesisPubSub.Message
   alias GenesisPubSub.Producer
   alias GenesisPubSub.SchemaSpec
+  alias GenesisPubSub.Telemetry
 
   @type topic :: String.t()
 
@@ -76,16 +77,33 @@ defmodule GenesisPubSub.Producer do
   def publish(producer, %Message{} = message) do
     %Config{} = config = Producer.Server.get_config(producer)
 
+    publish_start = Telemetry.publish_start(config.topic, [message])
     message = set_producer_meta(config, message)
-    config.adapter.publish(config.topic, message)
+
+    case config.adapter.publish(config.topic, message) do
+      {:ok, message} ->
+        Telemetry.publish_end(publish_start, config.topic, [message])
+        {:ok, message}
+
+      error ->
+        error
+    end
   end
 
   @spec publish(pid() | atom(), [Message.unpublished_t(), ...]) :: {:ok, [Message.published_t(), ...]}
   def publish(producer, [%Message{} | _rest] = messages) do
     %Config{} = config = Producer.Server.get_config(producer)
+    publish_start = Telemetry.publish_start(config.topic, messages)
     messages_with_meta = Enum.map(messages, &set_producer_meta(config, &1))
 
-    config.adapter.publish(config.topic, messages_with_meta)
+    case config.adapter.publish(config.topic, messages_with_meta) do
+      {:ok, messages} = result ->
+        Telemetry.publish_end(publish_start, config.topic, messages)
+        result
+
+      error ->
+        error
+    end
   end
 
   defp set_producer_meta(%Config{} = config, %Message{} = message) do

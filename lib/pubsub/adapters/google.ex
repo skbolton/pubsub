@@ -54,7 +54,6 @@ defmodule GenesisPubSub.Adapter.Google do
 
   @impl GenesisPubSub.Adapter
   def publish(topic, %Message{} = message) do
-    publish_start = GenesisPubSub.Telemetry.publish_start(topic, [message])
     # encode message content
     {:ok, %{data: encoded_data, metadata: encoded_metadata}} = Message.encode(message)
     encoded_metadata = trim_nil_values(encoded_metadata)
@@ -69,7 +68,6 @@ defmodule GenesisPubSub.Adapter.Google do
         # set publish-time metadata on each message
         published_message = set_published_meta(message, published_message_id)
 
-        GenesisPubSub.Telemetry.publish_end(publish_start, topic, [published_message])
         {:ok, published_message}
 
       error ->
@@ -79,8 +77,6 @@ defmodule GenesisPubSub.Adapter.Google do
 
   @impl GenesisPubSub.Adapter
   def publish(topic, [%Message{} | _others] = messages) do
-    publish_start = GenesisPubSub.Telemetry.publish_start(topic, messages)
-
     encoded_messages =
       Enum.map(messages, fn message ->
         # encode message content
@@ -98,8 +94,6 @@ defmodule GenesisPubSub.Adapter.Google do
           |> Enum.map(fn {message, published_message_id} ->
             set_published_meta(message, published_message_id)
           end)
-
-        GenesisPubSub.Telemetry.publish_end(publish_start, topic, messages)
 
         {:ok, messages}
 

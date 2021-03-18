@@ -106,4 +106,96 @@ defmodule GenesisPubSub.ProducerTest do
       Producer.publish(producer_params.name, message)
     end
   end
+
+  describe "telemetry events" do
+    setup do
+      schema_spec = SchemaSpec.json()
+
+      message =
+        Message.new(data: %{account_id: "123", first_name: "Bob"})
+        |> Message.put_meta(:schema, schema_spec)
+
+      {:ok, message: message}
+    end
+
+    setup do
+      start_supervised!({
+        Producer.Server,
+        Producer.Config.new(%{name: MyProducer, topic: "a-topic", schema: SchemaSpec.json()})
+      })
+
+      :ok
+    end
+
+    setup do
+      stub(MockAdapter, :publish, &Testing.publish/2)
+
+      :ok
+    end
+
+    test "publish start/end is called properly for single message", %{message: message, test: test_name} do
+      :telemetry.attach(
+        "#{test_name}-start",
+        [:genesis_pubsub, :publish, :start],
+        &report_telemetry_received/4,
+        nil
+      )
+
+      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, nil)
+
+      assert {:ok, published_message} = Producer.publish(MyProducer, message)
+
+      assert_receive {[:genesis_pubsub, :publish, :start], _measurements, %{messages: [^message], topic: "a-topic"},
+                      nil}
+
+      # verify that published message is sent through
+      assert_receive {[:genesis_pubsub, :publish, :end], _measurements,
+                      %{messages: [^published_message], topic: "a-topic"}, nil}
+    end
+
+    test "publish start/end is called properly for multiple messages", %{message: message, test: test_name} do
+      second_message = Message.follow(message) |> Message.put_meta(:schema, SchemaSpec.json())
+
+      :telemetry.attach(
+        "#{test_name}-start",
+        [:genesis_pubsub, :publish, :start],
+        &report_telemetry_received/4,
+        nil
+      )
+
+      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, nil)
+
+      assert {:ok, [published_message_one, published_message_two]} =
+               Producer.publish(MyProducer, [message, second_message])
+
+      assert_receive {[:genesis_pubsub, :publish, :start], _measurements,
+                      %{messages: [^message, ^second_message], topic: "a-topic"}, nil}
+
+      # verify that published message is sent through
+      assert_receive {[:genesis_pubsub, :publish, :end], _measurements,
+                      %{
+                        messages: [
+                          ^published_message_one,
+                          ^published_message_two
+                        ],
+                        topic: "a-topic"
+                      }, nil}
+    end
+
+    test "publish_end is not called on error paths", %{message: message, test: test_name} do
+      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, nil)
+
+      expect(MockAdapter, :publish, 2, fn _topic, _message -> {:error, :kaboom} end)
+      # test out both single and multiple message
+      assert {:error, :kaboom} = Producer.publish(MyProducer, message)
+      assert {:error, :kaboom} = Producer.publish(MyProducer, [message])
+
+      # verify that published message is sent through
+      refute_receive {[:genesis_pubsub, :publish, :end], _measurements, _context, nil}
+    end
+  end
+
+  defp report_telemetry_received(event_name, measurments, context, config) do
+    send(self(), {event_name, measurments, context, config})
+  end
 end

@@ -25,16 +25,13 @@ defmodule GenesisPubSub.Adapter.Google.Mock do
   @behaviour GenesisPubSub.Adapter
 
   @impl GenesisPubSub.Adapter
-  def publish(topic, %Message{} = message) do
-    publish_start = GenesisPubSub.Telemetry.publish_start(topic, [message])
+  def publish(_topic, %Message{} = message) do
     published_message = Google.set_published_meta(message, UUID.uuid4())
-    GenesisPubSub.Telemetry.publish_end(publish_start, topic, [published_message])
     {:ok, published_message}
   end
 
   @impl GenesisPubSub.Adapter
-  def publish(topic, [%Message{} | _others] = messages) do
-    publish_start = GenesisPubSub.Telemetry.publish_start(topic, messages)
+  def publish(_topic, [%Message{} | _others] = messages) do
     ids = 1..Enum.count(messages)
 
     messages =
@@ -42,8 +39,6 @@ defmodule GenesisPubSub.Adapter.Google.Mock do
       |> Enum.map(fn {message, published_message_id} ->
         Google.set_published_meta(message, published_message_id)
       end)
-
-    GenesisPubSub.Telemetry.publish_end(publish_start, topic, messages)
 
     {:ok, messages}
   end
