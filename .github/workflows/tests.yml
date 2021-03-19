@@ -43,6 +43,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-
 
+      - run: mix hex.organization auth genesisblock --key ${{ secrets.HEXPM_KEY}}
       - run: mix do deps.get, compile
       - run: mix coveralls.json
 
@@ -80,6 +81,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-
 
+      - run: mix hex.organization auth genesisblock --key ${{ secrets.HEXPM_KEY}}
       - run: mix do deps.get, compile --warnings-as-errors
 
   credo:
@@ -111,6 +113,7 @@ jobs:
           restore-keys: | 
             ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-
 
+      - run: mix hex.organization auth genesisblock --key ${{ secrets.HEXPM_KEY}}
       - run: mix do deps.get, compile
       - run: mix credo
 
@@ -154,6 +157,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-dialyzer-
 
+      - run: mix hex.organization auth genesisblock --key ${{ secrets.HEXPM_KEY}}
       - run: mix do deps.get, compile
       - run: mix dialyzer
 
@@ -186,6 +190,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-
 
+      - run: mix hex.organization auth genesisblock --key ${{ secrets.HEXPM_KEY}}
       - run: mix do deps.get, compile
       - run: mix format --check-formatted
 

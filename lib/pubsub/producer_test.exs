@@ -193,6 +193,35 @@ defmodule GenesisPubSub.ProducerTest do
       # verify that published message is sent through
       refute_receive {[:genesis_pubsub, :publish, :end], _measurements, _context, nil}
     end
+
+    test "publish_failure is called on failed publish of single message", %{message: message, test: test_name} do
+      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :failure], &report_telemetry_received/4, nil)
+
+      expect(MockAdapter, :publish, fn _topic, _message -> {:error, :kaboom} end)
+      assert {:error, :kaboom} = Producer.publish(MyProducer, message)
+
+      assert_receive {
+        [:genesis_pubsub, :publish, :failure],
+        _measurements,
+        %{topic: "a-topic", messages: [_message1], error: :kaboom},
+        nil
+      }
+    end
+
+    test "publish_failure is called on failed publish of multiple messages", %{message: message, test: test_name} do
+      second_message = Message.follow(message) |> Message.put_meta(:schema, SchemaSpec.json())
+      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :failure], &report_telemetry_received/4, nil)
+
+      expect(MockAdapter, :publish, fn _topic, _message -> {:error, :kaboom} end)
+      assert {:error, :kaboom} = Producer.publish(MyProducer, [message, second_message])
+
+      assert_receive {
+        [:genesis_pubsub, :publish, :failure],
+        _measurements,
+        %{topic: "a-topic", messages: [_message1, _message2], error: :kaboom},
+        nil
+      }
+    end
   end
 
   defp report_telemetry_received(event_name, measurments, context, config) do

@@ -10,6 +10,9 @@
 * `[:genesis_pubsub, :publish, :end]` - dispatched when a successful publish has occured
   * Measurements - `%{duration: native_time}`
   * Metdadata - `%{messages: [Message.published_t(), ...], topic: String.t()}`
+* `[:genesis_pubsub, :publish, :failure]` - dispatched when publish is unsuccessful
+  * Measurements - `%{}`
+  * Metadata - `%{topic: String.t(), messages: [Message.unpublished_t(), ...], error: any()}`
 
 ## Examples
 

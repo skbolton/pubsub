@@ -85,7 +85,8 @@ defmodule GenesisPubSub.Producer do
         Telemetry.publish_end(publish_start, config.topic, [message])
         {:ok, message}
 
-      error ->
+      {:error, reason} = error ->
+        Telemetry.publish_failure(config.topic, [message], reason)
         error
     end
   end
@@ -101,7 +102,8 @@ defmodule GenesisPubSub.Producer do
         Telemetry.publish_end(publish_start, config.topic, messages)
         result
 
-      error ->
+      {:error, reason} = error ->
+        Telemetry.publish_failure(config.topic, messages_with_meta, reason)
         error
     end
   end

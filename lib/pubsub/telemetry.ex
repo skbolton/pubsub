@@ -43,4 +43,20 @@ defmodule GenesisPubSub.Telemetry do
       topic: topic
     })
   end
+
+  @spec publish_failure(GenesisPubSub.Producer.topic(), [GenesisPubSub.Message.unpublished_t(), ...], any()) :: :ok
+  @doc """
+  Event for errors on publishing `messages` through an adapter.
+  """
+  def publish_failure(topic, messages, error) do
+    :telemetry.execute(
+      [:genesis_pubsub, :publish, :failure],
+      _measurements = %{},
+      %{
+        topic: topic,
+        messages: messages,
+        error: error
+      }
+    )
+  end
 end
