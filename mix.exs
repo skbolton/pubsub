@@ -37,9 +37,11 @@ defmodule GenesisPubSub.MixProject do
   defp elixirc_paths(_), do: ["lib"]
 
   # Run "mix help deps" to learn about dependencies.
+  # We use a custom broadway_cloud_pub_sub because of:
+  #   https://github.com/dashbitco/broadway_cloud_pub_sub/issues/55
   defp deps do
     [
-      {:broadway_cloud_pub_sub, "~> 0.6.0"},
+      {:broadway_cloud_pub_sub, "~> 0.6.4", organization: "genesisblock"},
       {:broadway, "~> 0.6.0"},
       {:credo, "~> 1.2", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
