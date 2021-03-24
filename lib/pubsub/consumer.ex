@@ -3,6 +3,7 @@ defmodule GenesisPubSub.Consumer do
   Consumer of messages to a given topic.
   """
   alias GenesisPubSub.Message
+  alias GenesisPubSub.Message.Metadata
 
   @doc """
   Starts a Broadway consumer by passing opts to `use GenesisPubSub.Consumer`.
@@ -94,6 +95,17 @@ defmodule GenesisPubSub.Consumer do
     adapter = GenesisPubSub.adapter()
 
     adapter.unpack(broadway_message)
+  end
+
+  @spec unpack_metadata(Broadway.Message.t()) :: Metadata.published_t()
+  @doc """
+  Converts a `%Broadway.Message{}` into a `%Metadata{}` using configured adapter.
+  See: `GenesisPubSub` configuration.
+  """
+  def unpack_metadata(%Broadway.Message{} = broadway_message) do
+    adapter = GenesisPubSub.adapter()
+
+    adapter.unpack_metadata(broadway_message)
   end
 
   @spec test_message(module(), Message.published_t()) :: reference()

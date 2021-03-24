@@ -103,10 +103,18 @@ defmodule GenesisPubSub.Adapter.Google do
   end
 
   @impl GenesisPubSub.Adapter
+  def unpack(%Broadway.Message{data: data} = message) do
+    metadata = unpack_metadata(message)
+
+    # use schema spec to decode the data
+    {:ok, decoded_data} = SchemaSpec.decode(metadata.schema, data)
+    Message.new(data: decoded_data, metadata: metadata)
+  end
+
+  @impl GenesisPubSub.Adapter
   # gcloud pubsub calls metadata "attributes"
   # Broadway sticks it under a key of that name in metadata field
-  def unpack(%Broadway.Message{
-        data: data,
+  def unpack_metadata(%Broadway.Message{
         metadata: %{messageId: event_id, publishTime: published_at, attributes: metadata_params}
       }) do
     # Google Pub/Sub sends published_at in milliseconds so we convert to microseconds
@@ -114,15 +122,10 @@ defmodule GenesisPubSub.Adapter.Google do
     %{microsecond: {us, _precision}} = published_at
     published_at = %{published_at | microsecond: {us, 6}}
 
-    metadata =
-      metadata_params
-      |> Map.put("adapter_event_id", event_id)
-      |> Map.put("published_at", published_at)
-      |> Metadata.from_encodable()
-
-    # use schema spec to decode the data
-    {:ok, decoded_data} = SchemaSpec.decode(metadata.schema, data)
-    Message.new(data: decoded_data, metadata: Map.from_struct(metadata))
+    metadata_params
+    |> Map.put("adapter_event_id", event_id)
+    |> Map.put("published_at", published_at)
+    |> Metadata.from_encodable()
   end
 
   @impl GenesisPubSub.Adapter

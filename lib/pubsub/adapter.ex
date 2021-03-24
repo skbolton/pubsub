@@ -3,6 +3,7 @@ defmodule GenesisPubSub.Adapter do
   External pubsub systems implemenations.
   """
   alias GenesisPubSub.Message
+  alias GenesisPubSub.Message.Metadata
   alias GenesisPubSub.Producer
 
   @type acknowledger :: {module(), ack_ref :: term(), data :: term()}
@@ -39,6 +40,11 @@ defmodule GenesisPubSub.Adapter do
   shape. This callback maps Broadway messages into internal messages.
   """
   @callback unpack(Broadway.Message.t()) :: Message.published_t()
+
+  @doc """
+  Convert a `Broadway.Message` into `GenesisPubSub.Message.Metadata`.
+  """
+  @callback unpack_metadata(Broadway.Message.t()) :: Metadata.published_t()
 
   @doc """
   Convert a `GenesisPubSub.Message` into a `Broadway.Message`.

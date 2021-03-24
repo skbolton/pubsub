@@ -47,6 +47,9 @@ defmodule GenesisPubSub.Adapter.Google.Mock do
   defdelegate unpack(message), to: Google
 
   @impl GenesisPubSub.Adapter
+  defdelegate unpack_metadata(message), to: Google
+
+  @impl GenesisPubSub.Adapter
   defdelegate pack(acknowledger, batch_mode, message), to: Google
 
   @impl GenesisPubSub.Adapter

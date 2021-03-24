@@ -142,9 +142,15 @@ defmodule GenesisPubSub.Message do
       %{}
   """
   def new(opts \\ []) do
+    metadata =
+      case Keyword.get(opts, :metadata, %{}) do
+        struct when is_struct(struct) -> struct
+        map -> Metadata.new(map)
+      end
+
     %__MODULE__{
       data: Keyword.get(opts, :data, %{}),
-      metadata: Metadata.new(Keyword.get(opts, :metadata, %{}))
+      metadata: metadata
     }
   end
 

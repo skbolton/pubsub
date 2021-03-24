@@ -10,7 +10,7 @@ defmodule GenesisPubSub.ConsumerTest do
   setup :verify_on_exit!
 
   setup context do
-    _ = start_supervised!({GenesisPubSub.TestBroadwayConsumer, name: context.test})
+    {:ok, _pid} = GenesisPubSub.TestBroadwayConsumer.start_link(name: context.test)
 
     :ok
   end
@@ -32,6 +32,26 @@ defmodule GenesisPubSub.ConsumerTest do
       end)
 
       Consumer.unpack(broadway_message)
+    end
+  end
+
+  describe "unpack_metadata/1" do
+    setup do
+      broadway_message = %Broadway.Message{
+        data: "test",
+        metadata: %{attributes: %{}},
+        acknowledger: {Broadway.NoopAcknowledger, "foo", "foo"}
+      }
+
+      {:ok, broadway_message: broadway_message}
+    end
+
+    test "chosen adapter's unpack_metadata function is called", %{broadway_message: broadway_message} do
+      Hammox.expect(MockAdapter, :unpack_metadata, fn ^broadway_message ->
+        Testing.unpack_metadata(broadway_message)
+      end)
+
+      Consumer.unpack_metadata(broadway_message)
     end
   end
 
