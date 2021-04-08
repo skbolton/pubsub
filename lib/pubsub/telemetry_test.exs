@@ -16,12 +16,13 @@ defmodule GenesisPubSub.TelemetryTest do
     end
 
     test "messages and topic are included in context", %{test: test_name} do
-      :telemetry.attach(test_name, [:genesis_pubsub, :publish, :start], &report_telemetry_received/4, nil)
+      :telemetry.attach(test_name, [:genesis_pubsub, :publish, :start], &report_telemetry_received/4, test_name)
       messages = [Message.new()]
       topic = "a-topic"
       Telemetry.publish_start(topic, messages)
 
-      assert_receive {[:genesis_pubsub, :publish, :start], _measurements, %{messages: ^messages, topic: ^topic}, nil}
+      assert_receive {[:genesis_pubsub, :publish, :start], _measurements, %{messages: ^messages, topic: ^topic},
+                      ^test_name}
     end
   end
 
@@ -33,16 +34,16 @@ defmodule GenesisPubSub.TelemetryTest do
     end
 
     test "a duration is returned", %{test: test_name} do
-      :telemetry.attach(test_name, [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, nil)
+      :telemetry.attach(test_name, [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, test_name)
       Telemetry.publish_end(%{system_time: System.monotonic_time()}, "a-topic", [Message.new()])
 
-      assert_receive {[:genesis_pubsub, :publish, :end], %{duration: duration}, _context, nil}
+      assert_receive {[:genesis_pubsub, :publish, :end], %{duration: duration}, _context, ^test_name}
 
       assert duration >= 0
     end
 
     test "messages and topic are included in context", %{test: test_name} do
-      :telemetry.attach(test_name, [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, nil)
+      :telemetry.attach(test_name, [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, test_name)
       topic = "a-topic"
 
       published_message =
@@ -59,7 +60,49 @@ defmodule GenesisPubSub.TelemetryTest do
       Telemetry.publish_end(%{system_time: System.monotonic_time()}, topic, [published_message])
 
       assert_receive {[:genesis_pubsub, :publish, :end], _context, %{messages: [^published_message], topic: ^topic},
-                      nil}
+                      ^test_name}
+    end
+  end
+
+  describe "publish_retry/2" do
+    test "messages, topic, and total_delay are included", %{test: test_name} do
+      :telemetry.attach(test_name, [:genesis_pubsub, :publish, :retry], &report_telemetry_received/4, test_name)
+      topic = "a-topic"
+
+      published_message =
+        Message.new(
+          metadata: %{
+            event_id: UUID.uuid4(),
+            adapter_event_id: UUID.uuid4(),
+            schema: GenesisPubSub.SchemaSpec.json(),
+            topic: topic,
+            service: "a-service"
+          }
+        )
+
+      Telemetry.publish_retry(topic, published_message, 10)
+
+      assert_receive {[:genesis_pubsub, :publish, :retry], _context,
+                      %{messages: [^published_message], topic: ^topic, total_delay: 10}, ^test_name}
+    end
+
+    test "messages can be a list or single message", %{test: test_name} do
+      :telemetry.attach(test_name, [:genesis_pubsub, :publish, :retry], &report_telemetry_received/4, test_name)
+      topic = "a-topic"
+
+      published_message =
+        Message.new(
+          metadata: %{
+            event_id: UUID.uuid4(),
+            adapter_event_id: UUID.uuid4(),
+            schema: GenesisPubSub.SchemaSpec.json(),
+            topic: topic,
+            service: "a-service"
+          }
+        )
+
+      assert :ok = Telemetry.publish_retry(topic, published_message, 0)
+      assert :ok = Telemetry.publish_retry(topic, [published_message], 0)
     end
   end
 

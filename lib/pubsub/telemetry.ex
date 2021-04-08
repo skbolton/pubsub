@@ -44,11 +44,15 @@ defmodule GenesisPubSub.Telemetry do
     })
   end
 
-  @spec publish_failure(GenesisPubSub.Producer.topic(), [GenesisPubSub.Message.unpublished_t(), ...], any()) :: :ok
+  @spec publish_failure(
+          GenesisPubSub.Producer.topic(),
+          GenesisPubSub.Message.unpublished_t() | [GenesisPubSub.Message.unpublished_t(), ...],
+          any()
+        ) :: :ok
   @doc """
   Event for errors on publishing `messages` through an adapter.
   """
-  def publish_failure(topic, messages, error) do
+  def publish_failure(topic, messages, error) when is_list(messages) do
     :telemetry.execute(
       [:genesis_pubsub, :publish, :failure],
       _measurements = %{},
@@ -59,4 +63,24 @@ defmodule GenesisPubSub.Telemetry do
       }
     )
   end
+
+  def publish_failure(topic, message, error), do: publish_failure(topic, [message], error)
+
+  @spec publish_retry(
+          GenesisPubSub.Producer.topic(),
+          GenesisPubSub.Message.unpublished_t() | [GenesisPubSub.Message.unpublished_t(), ...],
+          integer()
+        ) :: :ok
+  @doc """
+  Event for retries on publishing `messages` through an adapter.
+  """
+  def publish_retry(topic, messages, total_delay) when is_list(messages) do
+    :telemetry.execute(
+      [:genesis_pubsub, :publish, :retry],
+      _measurements = %{},
+      %{topic: topic, messages: messages, total_delay: total_delay}
+    )
+  end
+
+  def publish_retry(topic, message, total_delay), do: publish_retry(topic, [message], total_delay)
 end

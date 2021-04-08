@@ -24,7 +24,7 @@ defmodule GenesisPubSub.ProducerTest do
       adapter = Application.get_env(:genesis_pubsub, :adapter)
 
       config = Producer.Config.new(params)
-      assert %Producer.Config{service: ^service, adapter: ^adapter} = config
+      assert %Producer.Config{service: ^service, adapter: ^adapter, max_retry_duration: 0} = config
     end
 
     test "topic is a required option", %{producer_params: params} do
@@ -107,6 +107,102 @@ defmodule GenesisPubSub.ProducerTest do
     end
   end
 
+  describe "publish_with_retry/2" do
+    setup do
+      start_supervised!({
+        Producer.Server,
+        Producer.Config.new(%{
+          name: MyProducer,
+          topic: "a-topic",
+          schema: SchemaSpec.json(),
+          max_retry_duration: 15
+        })
+      })
+
+      :ok
+    end
+
+    setup do
+      message = Message.new()
+
+      {:ok, message: message}
+    end
+
+    test "retries publish if failing until max retry duration is met", %{
+      message: message,
+      producer_params: producer_params
+    } do
+      # expect publish to only be called twice because third retry would exceed max_retry_durationmix f
+      expect(MockAdapter, :publish, 2, fn _topic, _message ->
+        {:error, :request_failed}
+      end)
+
+      assert {:error, :request_failed} = Producer.publish(producer_params.name, message)
+    end
+
+    test "retries stops when publish succeeds", %{
+      message: message,
+      producer_params: producer_params
+    } do
+      expect(MockAdapter, :publish, 1, fn _topic, _message ->
+        {:error, :request_failed}
+      end)
+
+      expect(MockAdapter, :publish, 1, fn topic, message ->
+        Testing.publish(topic, message)
+      end)
+
+      assert {:ok, %Message{}} = Producer.publish(producer_params.name, message)
+    end
+
+    test "only calls publish once if max retry duration is zero", %{message: message} do
+      start_supervised!({
+        Producer.Server,
+        Producer.Config.new(%{
+          name: NoRetryProducer,
+          topic: "b-topic",
+          schema: SchemaSpec.json(),
+          max_retry_duration: 0
+        })
+      })
+
+      expect(MockAdapter, :publish, 1, fn _topic, _message ->
+        {:error, :request_failed}
+      end)
+
+      assert {:error, :request_failed} = Producer.publish(NoRetryProducer, message)
+    end
+
+    test "telemetry start is only fired once with retries", %{
+      message: message,
+      producer_params: producer_params,
+      test: test_name
+    } do
+      :telemetry.attach(
+        "#{test_name}-start",
+        [:genesis_pubsub, :publish, :start],
+        &report_telemetry_received/4,
+        test_name
+      )
+
+      expect(MockAdapter, :publish, 1, fn _topic, _message ->
+        {:error, :request_failed}
+      end)
+
+      expect(MockAdapter, :publish, 1, fn topic, message ->
+        Testing.publish(topic, message)
+      end)
+
+      assert {:ok, %Message{}} = Producer.publish(producer_params.name, message)
+
+      assert_receive {[:genesis_pubsub, :publish, :start], _measurements, %{messages: [^message], topic: "a-topic"},
+                      ^test_name}
+
+      refute_receive {[:genesis_pubsub, :publish, :start], _measurements, %{messages: [^message], topic: "a-topic"},
+                      ^test_name}
+    end
+  end
+
   describe "telemetry events" do
     setup do
       schema_spec = SchemaSpec.json()
@@ -138,19 +234,19 @@ defmodule GenesisPubSub.ProducerTest do
         "#{test_name}-start",
         [:genesis_pubsub, :publish, :start],
         &report_telemetry_received/4,
-        nil
+        test_name
       )
 
-      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, nil)
+      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, test_name)
 
       assert {:ok, published_message} = Producer.publish(MyProducer, message)
 
       assert_receive {[:genesis_pubsub, :publish, :start], _measurements, %{messages: [^message], topic: "a-topic"},
-                      nil}
+                      ^test_name}
 
       # verify that published message is sent through
       assert_receive {[:genesis_pubsub, :publish, :end], _measurements,
-                      %{messages: [^published_message], topic: "a-topic"}, nil}
+                      %{messages: [^published_message], topic: "a-topic"}, ^test_name}
     end
 
     test "publish start/end is called properly for multiple messages", %{message: message, test: test_name} do
@@ -160,16 +256,16 @@ defmodule GenesisPubSub.ProducerTest do
         "#{test_name}-start",
         [:genesis_pubsub, :publish, :start],
         &report_telemetry_received/4,
-        nil
+        test_name
       )
 
-      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, nil)
+      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, test_name)
 
       assert {:ok, [published_message_one, published_message_two]} =
                Producer.publish(MyProducer, [message, second_message])
 
       assert_receive {[:genesis_pubsub, :publish, :start], _measurements,
-                      %{messages: [^message, ^second_message], topic: "a-topic"}, nil}
+                      %{messages: [^message, ^second_message], topic: "a-topic"}, ^test_name}
 
       # verify that published message is sent through
       assert_receive {[:genesis_pubsub, :publish, :end], _measurements,
@@ -179,11 +275,11 @@ defmodule GenesisPubSub.ProducerTest do
                           ^published_message_two
                         ],
                         topic: "a-topic"
-                      }, nil}
+                      }, ^test_name}
     end
 
     test "publish_end is not called on error paths", %{message: message, test: test_name} do
-      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, nil)
+      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, test_name)
 
       expect(MockAdapter, :publish, 2, fn _topic, _message -> {:error, :kaboom} end)
       # test out both single and multiple message
@@ -191,11 +287,16 @@ defmodule GenesisPubSub.ProducerTest do
       assert {:error, :kaboom} = Producer.publish(MyProducer, [message])
 
       # verify that published message is sent through
-      refute_receive {[:genesis_pubsub, :publish, :end], _measurements, _context, nil}
+      refute_receive {[:genesis_pubsub, :publish, :end], _measurements, _context, ^test_name}
     end
 
     test "publish_failure is called on failed publish of single message", %{message: message, test: test_name} do
-      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :failure], &report_telemetry_received/4, nil)
+      :telemetry.attach(
+        "#{test_name}-end",
+        [:genesis_pubsub, :publish, :failure],
+        &report_telemetry_received/4,
+        test_name
+      )
 
       expect(MockAdapter, :publish, fn _topic, _message -> {:error, :kaboom} end)
       assert {:error, :kaboom} = Producer.publish(MyProducer, message)
@@ -204,13 +305,19 @@ defmodule GenesisPubSub.ProducerTest do
         [:genesis_pubsub, :publish, :failure],
         _measurements,
         %{topic: "a-topic", messages: [_message1], error: :kaboom},
-        nil
+        ^test_name
       }
     end
 
     test "publish_failure is called on failed publish of multiple messages", %{message: message, test: test_name} do
       second_message = Message.follow(message) |> Message.put_meta(:schema, SchemaSpec.json())
-      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :failure], &report_telemetry_received/4, nil)
+
+      :telemetry.attach(
+        "#{test_name}-end",
+        [:genesis_pubsub, :publish, :failure],
+        &report_telemetry_received/4,
+        test_name
+      )
 
       expect(MockAdapter, :publish, fn _topic, _message -> {:error, :kaboom} end)
       assert {:error, :kaboom} = Producer.publish(MyProducer, [message, second_message])
@@ -219,7 +326,7 @@ defmodule GenesisPubSub.ProducerTest do
         [:genesis_pubsub, :publish, :failure],
         _measurements,
         %{topic: "a-topic", messages: [_message1, _message2], error: :kaboom},
-        nil
+        ^test_name
       }
     end
   end
