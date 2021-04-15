@@ -19,10 +19,10 @@ defmodule GenesisPubSub.Adapter.Google.Mock do
 
   See Testing Guide for more explanation on testing producers and consumers.
   """
+  @behaviour GenesisPubSub.Adapter
+
   alias GenesisPubSub.Adapter.Google
   alias GenesisPubSub.Message
-
-  @behaviour GenesisPubSub.Adapter
 
   @impl GenesisPubSub.Adapter
   def publish(_topic, %Message{} = message) do

@@ -1,12 +1,13 @@
 defmodule GenesisPubSub.MixProject do
   use Mix.Project
 
-  def project do
+  def project() do
     [
       app: :genesis_pubsub,
       version: "0.10.2",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
+      aliases: aliases(),
       deps: deps(),
       name: "PubSub",
       source_url: "https://github.com/genesisblockhq/pubsub",
@@ -26,7 +27,7 @@ defmodule GenesisPubSub.MixProject do
   end
 
   # Run "mix help compile.app" to learn about applications.
-  def application do
+  def application() do
     [
       extra_applications: [:logger]
     ]
@@ -39,20 +40,26 @@ defmodule GenesisPubSub.MixProject do
   # Run "mix help deps" to learn about dependencies.
   # We use a custom broadway_cloud_pub_sub because of:
   #   https://github.com/dashbitco/broadway_cloud_pub_sub/issues/55
-  defp deps do
+  defp deps() do
     [
       {:broadway_cloud_pub_sub, "~> 0.6.4", organization: "genesisblock"},
       {:broadway, "~> 0.6.0"},
-      {:credo, "~> 1.2", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
+      {:genesis_credo, "~> 1.0.0", only: [:dev, :test], runtime: false, organization: "genesisblock"},
       {:goth, "~> 1.2.0"},
       {:hammox, "~> 0.3", only: [:test]},
       {:jason, "~> 1.2"},
       {:protobuf, "~> 0.7.1", only: [:test, :dev]},
       {:tesla, "~> 1.3"},
       {:uuid, "~> 1.1"}
+    ]
+  end
+
+  defp aliases() do
+    [
+      credo: ["credo --config-file deps/genesis_credo/.credo.exs"]
     ]
   end
 

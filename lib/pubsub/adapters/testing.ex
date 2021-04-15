@@ -1,11 +1,11 @@
 defmodule GenesisPubSub.Adapter.Testing do
+  @behaviour GenesisPubSub.Adapter
+
   alias GenesisPubSub.Message
   alias GenesisPubSub.Message.Metadata
   alias GenesisPubSub.SchemaSpec
 
   require Logger
-
-  @behaviour GenesisPubSub.Adapter
 
   @impl GenesisPubSub.Adapter
   def publish(_topic, [%Message{} | _rest] = messages) do

@@ -39,12 +39,12 @@ defmodule GenesisPubSub.Adapter.Google do
       config :tesla, adapter: Tesla.Adapter.Hackney
 
   """
+  @behaviour GenesisPubSub.Adapter
+
   alias GenesisPubSub.Adapter.Google.HTTPClient
   alias GenesisPubSub.Message
   alias GenesisPubSub.Message.Metadata
   alias GenesisPubSub.SchemaSpec
-
-  @behaviour GenesisPubSub.Adapter
 
   def auth_provider() do
     :genesis_pubsub

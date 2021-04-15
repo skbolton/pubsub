@@ -1,11 +1,12 @@
 defmodule GenesisPubSub.ConsumerTest do
   use ExUnit.Case, async: true
+
+  import Hammox
+
   alias GenesisPubSub.Adapter.Testing
   alias GenesisPubSub.Consumer
   alias GenesisPubSub.Message
   alias GenesisPubSub.SchemaSpec
-
-  import Hammox
 
   setup :verify_on_exit!
 

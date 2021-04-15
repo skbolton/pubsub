@@ -3,8 +3,8 @@ on: push
 env:
   MIX_ENV: test
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  OTP_VERSION: 23.1.2
-  ELIXIR_VERSION: 1.11.2
+  OTP_VERSION: 23.2.3
+  ELIXIR_VERSION: 1.11.3
 
 jobs:
   test:
@@ -193,12 +193,3 @@ jobs:
       - run: mix hex.organization auth genesisblock --key ${{ secrets.HEXPM_KEY}}
       - run: mix do deps.get, compile
       - run: mix format --check-formatted
-
-  git:
-    name: No git sources in mix.exs
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@main
-
-      - run: exit "$(grep -c "git:\|github:" mix.exs)"

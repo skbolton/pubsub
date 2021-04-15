@@ -4,10 +4,10 @@ defmodule GenesisPubSub.Adapter.GoogleLocal do
   with the exception of `broadway_producer/1` which handles setting up the topics and subscriptions
   in the local environment.
   """
+  @behaviour GenesisPubSub.Adapter
+
   alias GenesisPubSub.Adapter.Google
   alias GenesisPubSub.Adapter.GoogleLocal.Setup
-
-  @behaviour GenesisPubSub.Adapter
 
   @impl GenesisPubSub.Adapter
   defdelegate publish(topic, messages), to: Google
