@@ -26,12 +26,19 @@ defmodule GenesisPubSub.Adapter.Google.Mock do
 
   @impl GenesisPubSub.Adapter
   def publish(_topic, %Message{} = message) do
+    # Verify encoding works
+    {:ok, _} = Message.encode(message)
     published_message = Google.set_published_meta(message, UUID.uuid4())
     {:ok, published_message}
   end
 
   @impl GenesisPubSub.Adapter
   def publish(_topic, [%Message{} | _others] = messages) do
+    # Verify encoding works
+    Enum.each(messages, fn message ->
+      {:ok, _} = Message.encode(message)
+    end)
+
     ids = 1..Enum.count(messages)
 
     messages =
