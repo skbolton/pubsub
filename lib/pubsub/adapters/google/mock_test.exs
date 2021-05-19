@@ -23,7 +23,7 @@ defmodule GenesisPubSub.Adapter.Google.MockTest do
         Mock.publish("some-topic", Message.new(data: bad_proto, metadata: %{schema: SchemaSpec.proto(TestProto)}))
       end
 
-      assert {:ok, published} =
+      assert {:ok, _published} =
                Mock.publish(
                  "some-topic",
                  Message.new(data: good_proto, metadata: %{schema: SchemaSpec.proto(TestProto)})

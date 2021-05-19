@@ -4,7 +4,7 @@ defmodule GenesisPubSub.MixProject do
   def project() do
     [
       app: :genesis_pubsub,
-      version: "0.11.0",
+      version: "0.11.1",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -42,7 +42,7 @@ defmodule GenesisPubSub.MixProject do
   #   https://github.com/dashbitco/broadway_cloud_pub_sub/issues/55
   defp deps() do
     [
-      {:broadway_cloud_pub_sub, "~> 0.6.4", organization: "genesisblock"},
+      {:broadway_cloud_pub_sub, "~> 0.6.5", organization: "genesisblock"},
       {:broadway, "~> 0.6.0"},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
