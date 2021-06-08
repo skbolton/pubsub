@@ -32,6 +32,14 @@ defmodule GenesisPubSub.Message.Metadata do
     `correlation_id` they could be put in order by their `causation_id`. The
     first event having a nil `causation_id`.
 
+  * `user` - user that kicked off this event stream.
+    Supplied at message creation and copied on followed metadata.
+    * `account_id` - id number of user account 
+    * `bank_account_id` - id of bank account for user
+    * `firebase_uid` - id of firebase auth id
+    * `email` - user email
+    * `id` - user id
+
   * `topic` - topic where message resides
     Supplied at publishing time by producer.
 
@@ -44,6 +52,18 @@ defmodule GenesisPubSub.Message.Metadata do
   """
   alias GenesisPubSub.SchemaSpec
 
+  defmodule User do
+    @type t :: %__MODULE__{
+            account_id: String.t() | nil,
+            bank_account_id: String.t() | nil,
+            firebase_uid: String.t() | nil,
+            email: String.t() | nil,
+            id: String.t() | nil
+          }
+
+    defstruct [:account_id, :bank_account_id, :firebase_uid, :email, :id]
+  end
+
   defstruct [
     :event_id,
     :adapter_event_id,
@@ -51,6 +71,7 @@ defmodule GenesisPubSub.Message.Metadata do
     :published_at,
     :correlation_id,
     :causation_id,
+    :user,
     :topic,
     :schema,
     :service
@@ -64,6 +85,7 @@ defmodule GenesisPubSub.Message.Metadata do
           causation_id: GenesisPubSub.uuid() | nil,
           published_at: nil,
           schema: SchemaSpec.t(),
+          user: User.t(),
           service: String.t(),
           topic: String.t()
         }
@@ -79,7 +101,8 @@ defmodule GenesisPubSub.Message.Metadata do
           published_at: DateTime.t(),
           schema: SchemaSpec.t(),
           service: String.t(),
-          topic: String.t()
+          topic: String.t(),
+          user: User.t()
         }
 
   @typedoc """
@@ -97,11 +120,18 @@ defmodule GenesisPubSub.Message.Metadata do
           service: String.t(),
           topic: String.t(),
           schema_type: String.t(),
-          schema_encoder: String.t() | nil
+          schema_encoder: String.t() | nil,
+          user_id: String.t() | nil,
+          user_account_id: String.t() | nil,
+          user_bank_account_id: String.t() | nil,
+          user_firebase_uid: String.t() | nil,
+          user_email: String.t() | nil
         }
 
   @doc "Creates new `Metadata` with default values applied"
   def new(meta_data \\ %{}) do
+    user = Map.get(meta_data, :user, %{})
+
     params =
       %{
         event_id: UUID.uuid4(),
@@ -110,6 +140,7 @@ defmodule GenesisPubSub.Message.Metadata do
         causation_id: nil
       }
       |> Map.merge(meta_data)
+      |> Map.put(:user, struct(__MODULE__.User, user))
 
     struct!(__MODULE__, params)
   end
@@ -129,7 +160,8 @@ defmodule GenesisPubSub.Message.Metadata do
         event_id: UUID.uuid4(),
         created_at: DateTime.utc_now(),
         correlation_id: previous_metadata.correlation_id,
-        causation_id: previous_metadata.event_id
+        causation_id: previous_metadata.event_id,
+        user: previous_metadata.user
       }
       |> Map.merge(mergeable_meta_data)
 
@@ -144,7 +176,7 @@ defmodule GenesisPubSub.Message.Metadata do
   ensures that a version of metadata exists that is completely flat and should
   be easily serializable with json.
   """
-  def to_encodable(%__MODULE__{schema: %SchemaSpec{} = schema} = meta) do
+  def to_encodable(%__MODULE__{schema: %SchemaSpec{} = schema, user: user} = meta) do
     json_codec = GenesisPubSub.json_codec()
     # convert structs into encodable maps
     # this helps support more json protocols
@@ -152,6 +184,8 @@ defmodule GenesisPubSub.Message.Metadata do
     |> Map.from_struct()
     |> encode_schema(schema)
     |> Map.delete(:schema)
+    |> encode_user(user)
+    |> Map.delete(:user)
     # turn into json to stringify fields
     |> json_codec.encode!()
     # turn back into json map
@@ -203,6 +237,16 @@ defmodule GenesisPubSub.Message.Metadata do
         %{"schema_type" => "json"} = params ->
           Map.put(params, "schema", SchemaSpec.json())
       end
+      |> Map.put(
+        "user",
+        struct(User, %{
+          id: encodable["user_id"],
+          account_id: encodable["user_account_id"],
+          bank_account_id: encodable["user_bank_account_id"],
+          firebase_uid: encodable["user_firebase_uid"],
+          email: encodable["user_email"]
+        })
+      )
       |> Map.take([
         "event_id",
         "adapter_event_id",
@@ -210,6 +254,7 @@ defmodule GenesisPubSub.Message.Metadata do
         "published_at",
         "correlation_id",
         "causation_id",
+        "user",
         "topic",
         "service",
         "schema"
@@ -230,5 +275,14 @@ defmodule GenesisPubSub.Message.Metadata do
     serialized_metadata_params
     |> Map.put(:schema_type, :proto)
     |> Map.put(:schema_encoder, encoder)
+  end
+
+  defp encode_user(serialized_metadata_params, %User{} = user) do
+    serialized_metadata_params
+    |> Map.put(:user_id, user.id)
+    |> Map.put(:user_account_id, user.account_id)
+    |> Map.put(:user_bank_account_id, user.bank_account_id)
+    |> Map.put(:user_firebase_uid, user.firebase_uid)
+    |> Map.put(:user_email, user.email)
   end
 end

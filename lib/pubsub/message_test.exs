@@ -19,6 +19,13 @@ defmodule GenesisPubSub.MessageTest do
 
       assert message.metadata.correlation_id == "1"
     end
+
+    test "user metadata can be passed" do
+      assert %Message{metadata: %Message.Metadata{user: %Message.Metadata.User{} = user}} =
+               Message.new(metadata: %{user: %{id: "123"}})
+
+      assert user.id == "123"
+    end
   end
 
   describe "follow/2" do

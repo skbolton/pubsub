@@ -180,7 +180,15 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
       message =
         Message.new(
           data: %{account_id: "123"},
-          metadata: %{adapter_event_id: event_id, published_at: DateTime.utc_now(), schema: SchemaSpec.json()}
+          metadata: %{
+            adapter_event_id: event_id,
+            published_at: DateTime.utc_now(),
+            user: %{
+              id: UUID.uuid4(),
+              account_id: UUID.uuid4()
+            },
+            schema: SchemaSpec.json()
+          }
         )
 
       {:ok, %{data: data, metadata: meta}} = Message.encode(message)
@@ -193,7 +201,12 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
 
       %Message{data: data, metadata: metadata} = Google.unpack(broadway_message)
       assert %{"account_id" => "123"} = data
-      assert %Metadata{published_at: ^truncated_microseconds_published_at, adapter_event_id: ^event_id} = metadata
+
+      assert %Metadata{published_at: ^truncated_microseconds_published_at, adapter_event_id: ^event_id, user: user} =
+               metadata
+
+      assert user.id == message.metadata.user.id
+      assert user.account_id == message.metadata.user.account_id
     end
   end
 
@@ -209,6 +222,13 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
             adapter_event_id: UUID.uuid4(),
             published_at: DateTime.utc_now(),
             schema: SchemaSpec.json(),
+            user: %{
+              id: UUID.uuid4(),
+              account_id: UUID.uuid4(),
+              bank_account_id: UUID.uuid4(),
+              firebase_uid: UUID.uuid4(),
+              email: "example@example.com"
+            },
             service: "testing",
             topic: "a-topic"
           }
@@ -223,6 +243,13 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
             adapter_event_id: UUID.uuid4(),
             published_at: DateTime.utc_now(),
             schema: SchemaSpec.proto(TestProto),
+            user: %{
+              id: UUID.uuid4(),
+              account_id: UUID.uuid4(),
+              bank_account_id: UUID.uuid4(),
+              firebase_uid: UUID.uuid4(),
+              email: "example@example.com"
+            },
             service: "testing",
             topic: "a-different-topic"
           }
@@ -275,6 +302,11 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
       causation_id = json.metadata.causation_id
       topic = json.metadata.topic
       service = json.metadata.service
+      user_id = json.metadata.user.id
+      user_account_id = json.metadata.user.account_id
+      user_bank_account_id = json.metadata.user.bank_account_id
+      user_firebase_uid = json.metadata.user.firebase_uid
+      user_email = json.metadata.user.email
 
       message = Google.pack(acknowledger, batch_mode, json)
       # event id and publish time get put as top level keys in metadata
@@ -284,7 +316,12 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
                "correlation_id" => ^correlation_id,
                "causation_id" => ^causation_id,
                "topic" => ^topic,
-               "service" => ^service
+               "service" => ^service,
+               "user_id" => ^user_id,
+               "user_account_id" => ^user_account_id,
+               "user_bank_account_id" => ^user_bank_account_id,
+               "user_firebase_uid" => ^user_firebase_uid,
+               "user_email" => ^user_email
              } = attrs
 
       # proto

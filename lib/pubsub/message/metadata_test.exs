@@ -16,12 +16,35 @@ defmodule GenesisPubSub.Message.MetadataTest do
     test "invalid keys cause exceptions" do
       assert_raise KeyError, fn -> Metadata.new(%{non_existent_key: "hi"}) end
     end
+
+    test "user metadata can be passed" do
+      assert %Metadata{user: %Metadata.User{} = user} = Metadata.new(%{user: %{email: "bob@example.com"}})
+      assert user.email == "bob@example.com"
+    end
   end
 
   describe "follow/1" do
     test "correlation_id is copied to new metadata" do
       %{correlation_id: correlation} = previous = Metadata.new()
       assert %{correlation_id: ^correlation} = Metadata.follow(previous)
+    end
+
+    test "user is copied to new metadata" do
+      user = %{
+        id: UUID.uuid4(),
+        bank_account_id: UUID.uuid4(),
+        account_id: UUID.uuid4(),
+        firebase_uid: UUID.uuid4(),
+        email: "example@example.com"
+      }
+
+      previous = Metadata.new(%{user: user})
+      assert %Metadata{user: %Metadata.User{} = followed_user} = Metadata.follow(previous)
+      assert Map.get(followed_user, :id) == user.id
+      assert Map.get(followed_user, :bank_account_id) == user.bank_account_id
+      assert Map.get(followed_user, :account_id) == user.account_id
+      assert Map.get(followed_user, :firebase_uid) == user.firebase_uid
+      assert Map.get(followed_user, :email) == user.email
     end
 
     test "previous metadata event_id becomes new metadata causation_id" do
@@ -40,6 +63,11 @@ defmodule GenesisPubSub.Message.MetadataTest do
       causation_id = UUID.uuid4()
       service = "testing"
       topic = "a-topic"
+      user_id = UUID.uuid4()
+      user_account_id = UUID.uuid4()
+      user_bank_account_id = UUID.uuid4()
+      user_firebase_uid = UUID.uuid4()
+      user_email = "example@example.com"
 
       metadata =
         Metadata.new(%{
@@ -48,6 +76,13 @@ defmodule GenesisPubSub.Message.MetadataTest do
           causation_id: causation_id,
           service: service,
           topic: topic,
+          user: %{
+            id: user_id,
+            account_id: user_account_id,
+            bank_account_id: user_bank_account_id,
+            firebase_uid: user_firebase_uid,
+            email: user_email
+          },
           schema: SchemaSpec.json(),
           created_at: created_at_string
         })
@@ -56,6 +91,11 @@ defmodule GenesisPubSub.Message.MetadataTest do
 
       assert %{
                "schema_type" => "json",
+               "user_id" => ^user_id,
+               "user_account_id" => ^user_account_id,
+               "user_bank_account_id" => ^user_bank_account_id,
+               "user_firebase_uid" => ^user_firebase_uid,
+               "user_email" => ^user_email,
                "causation_id" => ^causation_id,
                "correlation_id" => ^correlation_id,
                "created_at" => ^created_at_string,
