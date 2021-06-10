@@ -184,7 +184,7 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
             adapter_event_id: event_id,
             published_at: DateTime.utc_now(),
             user: %{
-              id: UUID.uuid4(),
+              user_id: UUID.uuid4(),
               account_id: UUID.uuid4()
             },
             schema: SchemaSpec.json()
@@ -205,7 +205,7 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
       assert %Metadata{published_at: ^truncated_microseconds_published_at, adapter_event_id: ^event_id, user: user} =
                metadata
 
-      assert user.id == message.metadata.user.id
+      assert user.user_id == message.metadata.user.user_id
       assert user.account_id == message.metadata.user.account_id
     end
   end
@@ -223,11 +223,11 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
             published_at: DateTime.utc_now(),
             schema: SchemaSpec.json(),
             user: %{
-              id: UUID.uuid4(),
+              user_id: UUID.uuid4(),
               account_id: UUID.uuid4(),
               bank_account_id: UUID.uuid4(),
               firebase_uid: UUID.uuid4(),
-              email: "example@example.com"
+              user_email: "example@example.com"
             },
             service: "testing",
             topic: "a-topic"
@@ -244,11 +244,11 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
             published_at: DateTime.utc_now(),
             schema: SchemaSpec.proto(TestProto),
             user: %{
-              id: UUID.uuid4(),
+              user_id: UUID.uuid4(),
               account_id: UUID.uuid4(),
               bank_account_id: UUID.uuid4(),
               firebase_uid: UUID.uuid4(),
-              email: "example@example.com"
+              user_email: "example@example.com"
             },
             service: "testing",
             topic: "a-different-topic"
@@ -302,11 +302,11 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
       causation_id = json.metadata.causation_id
       topic = json.metadata.topic
       service = json.metadata.service
-      user_id = json.metadata.user.id
+      user_id = json.metadata.user.user_id
       user_account_id = json.metadata.user.account_id
       user_bank_account_id = json.metadata.user.bank_account_id
       user_firebase_uid = json.metadata.user.firebase_uid
-      user_email = json.metadata.user.email
+      user_email = json.metadata.user.user_email
 
       message = Google.pack(acknowledger, batch_mode, json)
       # event id and publish time get put as top level keys in metadata

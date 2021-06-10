@@ -22,9 +22,9 @@ defmodule GenesisPubSub.MessageTest do
 
     test "user metadata can be passed" do
       assert %Message{metadata: %Message.Metadata{user: %Message.Metadata.User{} = user}} =
-               Message.new(metadata: %{user: %{id: "123"}})
+               Message.new(metadata: %{user: %{user_id: "123"}})
 
-      assert user.id == "123"
+      assert user.user_id == "123"
     end
   end
 

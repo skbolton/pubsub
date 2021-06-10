@@ -3,6 +3,22 @@ defmodule GenesisPubSub.Message.MetadataTest do
   alias GenesisPubSub.Message.Metadata
   alias GenesisPubSub.SchemaSpec
 
+  setup_all do
+    # simple agent that we can assign merge properties to
+    {:ok, merge_agent} = Agent.start_link(fn -> %{} end)
+    # lookup the agents state to get merge metadata
+    # in each test we can change the agent state to update how the merge occurs
+    # we shouldn't need to test the merging elsewhere so doing this update to application state should be fine
+    Application.put_env(:genesis_pubsub, :merge_metadata, {Agent, :get, [merge_agent, fn state -> state end]})
+
+    # cleanup application state
+    on_exit(fn ->
+      Application.delete_env(:genesis_pubsub, :merge_metadata)
+    end)
+
+    {:ok, merge_agent: merge_agent}
+  end
+
   describe "new/1" do
     test "options are not required" do
       assert %Metadata{} = Metadata.new()
@@ -13,13 +29,55 @@ defmodule GenesisPubSub.Message.MetadataTest do
       assert %{correlation_id: "123", causation_id: "456", event_id: "abc"} = meta
     end
 
+    test "merge_metadata mfa is invoked to get default metadata params", %{merge_agent: agent} do
+      merge_props =
+        Agent.get_and_update(agent, fn _current_state ->
+          new_state = %{
+            event_id: UUID.uuid4(),
+            user: %{
+              user_id: UUID.uuid4(),
+              user_email: "example@example.com"
+            }
+          }
+
+          {new_state, new_state}
+        end)
+
+      %Metadata{user: %Metadata.User{} = user} = meta = Metadata.new(%{})
+      assert meta.event_id == merge_props.event_id
+      assert user.user_id == merge_props.user.user_id
+      assert user.user_email == merge_props.user.user_email
+    end
+
+    test "params passed to Metadata.new/2 override merge_metadata mfa", %{merge_agent: agent} do
+      Agent.get_and_update(agent, fn _current_state ->
+        new_state = %{
+          user: %{
+            user_id: UUID.uuid4(),
+            user_email: "example@example.com"
+          }
+        }
+
+        {new_state, new_state}
+      end)
+
+      override_id = UUID.uuid4()
+      override_email = "overridden@example.com"
+
+      %Metadata{user: %Metadata.User{} = user} =
+        meta = Metadata.new(%{event_id: override_id, user: %{user_email: override_email}})
+
+      assert meta.event_id == override_id
+      assert user.user_email == override_email
+    end
+
     test "invalid keys cause exceptions" do
       assert_raise KeyError, fn -> Metadata.new(%{non_existent_key: "hi"}) end
     end
 
     test "user metadata can be passed" do
-      assert %Metadata{user: %Metadata.User{} = user} = Metadata.new(%{user: %{email: "bob@example.com"}})
-      assert user.email == "bob@example.com"
+      assert %Metadata{user: %Metadata.User{} = user} = Metadata.new(%{user: %{user_email: "bob@example.com"}})
+      assert user.user_email == "bob@example.com"
     end
   end
 
@@ -31,20 +89,20 @@ defmodule GenesisPubSub.Message.MetadataTest do
 
     test "user is copied to new metadata" do
       user = %{
-        id: UUID.uuid4(),
+        user_id: UUID.uuid4(),
         bank_account_id: UUID.uuid4(),
         account_id: UUID.uuid4(),
         firebase_uid: UUID.uuid4(),
-        email: "example@example.com"
+        user_email: "example@example.com"
       }
 
       previous = Metadata.new(%{user: user})
       assert %Metadata{user: %Metadata.User{} = followed_user} = Metadata.follow(previous)
-      assert Map.get(followed_user, :id) == user.id
+      assert Map.get(followed_user, :user_id) == user.user_id
       assert Map.get(followed_user, :bank_account_id) == user.bank_account_id
       assert Map.get(followed_user, :account_id) == user.account_id
       assert Map.get(followed_user, :firebase_uid) == user.firebase_uid
-      assert Map.get(followed_user, :email) == user.email
+      assert Map.get(followed_user, :user_email) == user.user_email
     end
 
     test "previous metadata event_id becomes new metadata causation_id" do
@@ -77,11 +135,11 @@ defmodule GenesisPubSub.Message.MetadataTest do
           service: service,
           topic: topic,
           user: %{
-            id: user_id,
+            user_id: user_id,
             account_id: user_account_id,
             bank_account_id: user_bank_account_id,
             firebase_uid: user_firebase_uid,
-            email: user_email
+            user_email: user_email
           },
           schema: SchemaSpec.json(),
           created_at: created_at_string

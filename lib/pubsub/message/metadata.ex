@@ -37,8 +37,8 @@ defmodule GenesisPubSub.Message.Metadata do
     * `account_id` - id number of user account 
     * `bank_account_id` - id of bank account for user
     * `firebase_uid` - id of firebase auth id
-    * `email` - user email
-    * `id` - user id
+    * `user_email` - user email
+    * `user_id` - user id
 
   * `topic` - topic where message resides
     Supplied at publishing time by producer.
@@ -57,11 +57,11 @@ defmodule GenesisPubSub.Message.Metadata do
             account_id: String.t() | nil,
             bank_account_id: String.t() | nil,
             firebase_uid: String.t() | nil,
-            email: String.t() | nil,
-            id: String.t() | nil
+            user_email: String.t() | nil,
+            user_id: String.t() | nil
           }
 
-    defstruct [:account_id, :bank_account_id, :firebase_uid, :email, :id]
+    defstruct [:account_id, :bank_account_id, :firebase_uid, :user_email, :user_id]
   end
 
   defstruct [
@@ -128,10 +128,20 @@ defmodule GenesisPubSub.Message.Metadata do
           user_email: String.t() | nil
         }
 
-  @doc "Creates new `Metadata` with default values applied"
-  def new(meta_data \\ %{}) do
-    user = Map.get(meta_data, :user, %{})
+  @doc """
+  Creates new `Metadata` with default values applied.
 
+  Params are calculated by merging the following values in order:
+
+  1. Default values generated during `Metadata.new/1`
+    * `event_id` - uuid
+    * `correlation_id` - uuid
+    * `created_at` - timestamp
+    * `causation_id` - nil
+  2. params returned from optional `GenesisPubSub.merge_metadata/0` mfa callback
+  3. params passed into `Metadata.new/1`
+  """
+  def new(meta_data \\ %{}) do
     params =
       %{
         event_id: UUID.uuid4(),
@@ -139,8 +149,9 @@ defmodule GenesisPubSub.Message.Metadata do
         created_at: DateTime.utc_now(),
         causation_id: nil
       }
+      |> merge_metadata()
       |> Map.merge(meta_data)
-      |> Map.put(:user, struct(__MODULE__.User, user))
+      |> Map.update(:user, %User{}, fn user_params -> struct(User, user_params) end)
 
     struct!(__MODULE__, params)
   end
@@ -240,11 +251,11 @@ defmodule GenesisPubSub.Message.Metadata do
       |> Map.put(
         "user",
         struct(User, %{
-          id: encodable["user_id"],
+          user_id: encodable["user_id"],
           account_id: encodable["user_account_id"],
           bank_account_id: encodable["user_bank_account_id"],
           firebase_uid: encodable["user_firebase_uid"],
-          email: encodable["user_email"]
+          user_email: encodable["user_email"]
         })
       )
       |> Map.take([
@@ -279,10 +290,17 @@ defmodule GenesisPubSub.Message.Metadata do
 
   defp encode_user(serialized_metadata_params, %User{} = user) do
     serialized_metadata_params
-    |> Map.put(:user_id, user.id)
+    |> Map.put(:user_id, user.user_id)
     |> Map.put(:user_account_id, user.account_id)
     |> Map.put(:user_bank_account_id, user.bank_account_id)
     |> Map.put(:user_firebase_uid, user.firebase_uid)
-    |> Map.put(:user_email, user.email)
+    |> Map.put(:user_email, user.user_email)
+  end
+
+  defp merge_metadata(params) do
+    {m, f, a} = GenesisPubSub.merge_metadata()
+
+    params
+    |> Map.merge(Kernel.apply(m, f, a))
   end
 end

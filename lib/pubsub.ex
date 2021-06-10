@@ -132,12 +132,69 @@ defmodule GenesisPubSub do
   """
   @type uuid :: <<_::288>>
 
-  @doc "Returns configured json_codec library"
+  @doc """
+  Returns configured json_codec library, defaulting to Jason.
+
+    # config.exs
+    config :genesis_pubsub, :json_codec, Poison
+
+    GenesisPubSub.json_codec()
+    Poison
+  """
   def json_codec(), do: Application.get_env(:genesis_pubsub, :json_codec, Jason)
 
-  @doc "Returns configured default service name"
+  @doc """
+  Returns configured default service name.
+
+    # config.exs
+    config :genesis_pubsub, :service, "my-service"
+
+    GenesisPubSub.service()
+    "my-service"
+  """
   def service(), do: Application.get_env(:genesis_pubsub, :service)
 
-  @doc "Returns configured default adapter"
+  @doc """
+  Returns configured default adapter.
+
+    # config.exs
+    config :genesis_pubsub, :adapter, Google
+
+    GenesisPubSub.adapter()
+    Google
+  """
   def adapter(), do: Application.get_env(:genesis_pubsub, :adapter)
+
+  @doc """
+  Returns configured merge_metadata mfa.
+
+  This callback can be used to set metadata that will be merged on every message
+  when `Message.new/1` is invoked. The values returned from this mfa will be
+  merged with defaults values supplied by GenesisPubSub and then values supplied
+  during `Message.new/1`. The merging happens in the following order:
+
+  1. library defaults
+  2. merge_metadata mfa
+  3. params passed to `Message.new/1`
+
+  See `GenesisPubSub.Message.Metadata.new/1` for more information on default
+  params supplied by library.
+
+  This is useful if you have a context that can be called into to extract values
+  that you would want to add to every message. An example could be unpacking a 
+  JWT to get at user user information to then add to metadata's user params.
+  Rather than having to manually add user information everywhere `Mssage.new/1`
+  is called.
+
+    # config.exs
+    config :genesis_pubsub, :merge_metadata, {MyApp.Authentication, :merge_user_data, []}
+
+    GenesisPubSub.merge_metadata()
+    {MyApp.Authentication, :merge_jwt_params, []}
+  """
+  def merge_metadata() do
+    # default mfa that just returns an empty map to merge in
+    default_mfa = {Map, :new, []}
+    Application.get_env(:genesis_pubsub, :merge_metadata, default_mfa)
+  end
 end
