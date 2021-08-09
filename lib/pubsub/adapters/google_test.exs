@@ -45,7 +45,7 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
           # messages get sent under a messages key
           # metadata becomes attributes
           # data stays as data
-          assert [%{"data" => _, "attributes" => _}] = body["messages"]
+          assert [%{"data" => _data, "attributes" => _attributes}] = body["messages"]
 
           TeslaHelper.response(
             status: 404,
@@ -137,7 +137,8 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
         [] ->
           body = Jason.decode!(body)
 
-          assert [%{"data" => _, "attributes" => _}, %{"data" => _, "attributes" => _}] = body["messages"]
+          assert [%{"data" => _data1, "attributes" => _attributes1}, %{"data" => _data2, "attributes" => _attributes2}] =
+                   body["messages"]
 
           TeslaHelper.response(
             status: 404,

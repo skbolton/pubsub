@@ -130,6 +130,7 @@ defmodule GenesisPubSub do
   step would be to read the `GenesisPubSub.Message` documentation to understand
   message workflows.
   """
+  # credo:disable-for-next-line Credo.Check.Warning.MustNameUnderscoredVariables
   @type uuid :: <<_::288>>
 
   @doc """
@@ -181,7 +182,7 @@ defmodule GenesisPubSub do
   params supplied by library.
 
   This is useful if you have a context that can be called into to extract values
-  that you would want to add to every message. An example could be unpacking a 
+  that you would want to add to every message. An example could be unpacking a
   JWT to get at user user information to then add to metadata's user params.
   Rather than having to manually add user information everywhere `Mssage.new/1`
   is called.

@@ -122,7 +122,7 @@ defmodule GenesisPubSub.Producer do
         :timer.sleep(new_delay)
 
         case config.adapter.publish(config.topic, message) do
-          {:ok, _} = success_response ->
+          {:ok, _response} = success_response ->
             {:halt, success_response}
 
           error_response ->

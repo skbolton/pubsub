@@ -13,7 +13,7 @@ defmodule GenesisPubSub.Adapter.Google.GothMock do
 
   defmodule Token do
     @moduledoc false
-    def for_scope(_) do
+    def for_scope(_scope) do
       {:ok, %{type: "Bearer", token: "fake-token"}}
     end
   end

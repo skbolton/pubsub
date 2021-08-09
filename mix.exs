@@ -4,7 +4,7 @@ defmodule GenesisPubSub.MixProject do
   def project() do
     [
       app: :genesis_pubsub,
-      version: "0.13.1",
+      version: "0.13.2",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -35,7 +35,7 @@ defmodule GenesisPubSub.MixProject do
 
   # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "test/support"]
-  defp elixirc_paths(_), do: ["lib"]
+  defp elixirc_paths(_env), do: ["lib"]
 
   # Run "mix help deps" to learn about dependencies.
   # We use a custom broadway_cloud_pub_sub because of:
