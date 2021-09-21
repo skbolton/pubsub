@@ -42,8 +42,8 @@ defmodule GenesisPubSub.MixProject do
   #   https://github.com/dashbitco/broadway_cloud_pub_sub/issues/55
   defp deps() do
     [
-      {:broadway_cloud_pub_sub, "~> 0.6.3"},
-      {:broadway, "~> 0.6.0"},
+      {:broadway_cloud_pub_sub, "~> 0.7"},
+      {:broadway, "~> 1.0"},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
