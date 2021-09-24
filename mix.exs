@@ -4,7 +4,7 @@ defmodule GenesisPubSub.MixProject do
   def project() do
     [
       app: :genesis_pubsub,
-      version: "0.13.2",
+      version: "0.13.3",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
