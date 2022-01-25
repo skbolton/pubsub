@@ -42,6 +42,7 @@ defmodule GenesisPubSub.Adapter.Google do
   @behaviour GenesisPubSub.Adapter
 
   alias GenesisPubSub.Adapter.Google.HTTPClient
+  alias GenesisPubSub.Adapter.Google.TokenGenerator
   alias GenesisPubSub.Message
   alias GenesisPubSub.Message.Metadata
   alias GenesisPubSub.SchemaSpec
@@ -186,7 +187,8 @@ defmodule GenesisPubSub.Adapter.Google do
     [
       module: {
         BroadwayCloudPubSub.Producer,
-        subscription: "projects/#{project_id}/subscriptions/#{subscription}"
+        subscription: "projects/#{project_id}/subscriptions/#{subscription}",
+        token_generator: {TokenGenerator, :fetch_token, []}
       }
     ]
   end

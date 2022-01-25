@@ -7,6 +7,7 @@ defmodule GenesisPubSub.Adapter.GoogleLocal do
   @behaviour GenesisPubSub.Adapter
 
   alias GenesisPubSub.Adapter.Google
+  alias GenesisPubSub.Adapter.Google.TokenGenerator
   alias GenesisPubSub.Adapter.GoogleLocal.Setup
 
   @impl GenesisPubSub.Adapter
@@ -37,6 +38,11 @@ defmodule GenesisPubSub.Adapter.GoogleLocal do
 
     {:ok, %{name: name}} = Setup.ensure_subscription_exists(topic, subscription)
 
-    [module: {BroadwayCloudPubSub.Producer, subscription: name}]
+    [
+      module: {
+        BroadwayCloudPubSub.Producer,
+        subscription: name, token_generator: {TokenGenerator, :fetch_token, []}
+      }
+    ]
   end
 end

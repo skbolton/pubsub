@@ -348,7 +348,12 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
 
   describe "broadway_producer/1" do
     test "returns correct config" do
-      assert [module: {BroadwayCloudPubSub.Producer, subscription: "projects/testing/subscriptions/test-subscription"}] ==
+      assert [
+               module:
+                 {BroadwayCloudPubSub.Producer,
+                  subscription: "projects/testing/subscriptions/test-subscription",
+                  token_generator: {GenesisPubSub.Adapter.Google.TokenGenerator, :fetch_token, []}}
+             ] ==
                Google.broadway_producer(subscription: "test-subscription")
     end
 

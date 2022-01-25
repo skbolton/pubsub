@@ -46,7 +46,12 @@ defmodule GenesisPubSub.Adapter.GoogleLocalTest do
           )
       end)
 
-      assert [module: {BroadwayCloudPubSub.Producer, subscription: "projects/testing/subscriptions/test-subscription"}] ==
+      assert [
+               module:
+                 {BroadwayCloudPubSub.Producer,
+                  subscription: "projects/testing/subscriptions/test-subscription",
+                  token_generator: {GenesisPubSub.Adapter.Google.TokenGenerator, :fetch_token, []}}
+             ] ==
                GoogleLocal.broadway_producer(topic: "test-topic", subscription: "test-subscription")
     end
 
@@ -71,7 +76,12 @@ defmodule GenesisPubSub.Adapter.GoogleLocalTest do
           )
       end)
 
-      assert [module: {BroadwayCloudPubSub.Producer, subscription: "projects/testing/subscriptions/test-subscription"}] ==
+      assert [
+               module:
+                 {BroadwayCloudPubSub.Producer,
+                  subscription: "projects/testing/subscriptions/test-subscription",
+                  token_generator: {GenesisPubSub.Adapter.Google.TokenGenerator, :fetch_token, []}}
+             ] ==
                GoogleLocal.broadway_producer(topic: "test-topic", subscription: "test-subscription")
     end
 
