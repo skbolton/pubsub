@@ -1,7 +1,7 @@
-.credo.exs @michaelst @SophisticaSean
-.dialyzer_ignore.exs @michaelst @SophisticaSean
-.tool-versions @michaelst @SophisticaSean
-/.devops/ @michaelst @SophisticaSean
-/.github/ @michaelst @SophisticaSean
-mix.exs @michaelst @SophisticaSean
-mix.lock @michaelst @SophisticaSean
+.credo.exs @michaelst @gaiabeatrice
+.dialyzer_ignore.exs @michaelst @gaiabeatrice
+.tool-versions @michaelst @gaiabeatrice
+/.devops/ @michaelst @gaiabeatrice
+/.github/ @michaelst @gaiabeatrice
+mix.exs @michaelst @gaiabeatrice
+mix.lock @michaelst @gaiabeatrice
