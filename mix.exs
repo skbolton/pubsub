@@ -10,7 +10,7 @@ defmodule GenesisPubSub.MixProject do
       aliases: aliases(),
       deps: deps(),
       name: "PubSub",
-      source_url: "https://github.com/genesisblockhq/pubsub",
+      source_url: "https://github.com/hightophq/pubsub",
       docs: docs(),
       package: package(),
       elixirc_paths: elixirc_paths(Mix.env()),
