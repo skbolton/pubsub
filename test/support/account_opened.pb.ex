@@ -1,14 +1,7 @@
 defmodule TestProto do
   @moduledoc false
-  use Protobuf, syntax: :proto3
+  use Protobuf, protoc_gen_elixir_version: "0.10.0", syntax: :proto3
 
-  @type t :: %__MODULE__{
-          account_id: String.t(),
-          name: String.t()
-        }
-
-  defstruct [:account_id, :name]
-
-  field(:account_id, 1, type: :string)
+  field(:account_id, 1, type: :string, json_name: "accountId")
   field(:name, 2, type: :string)
 end
