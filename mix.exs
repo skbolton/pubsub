@@ -4,7 +4,7 @@ defmodule GenesisPubSub.MixProject do
   def project() do
     [
       app: :genesis_pubsub,
-      version: "0.13.4",
+      version: "0.13.5",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -48,7 +48,7 @@ defmodule GenesisPubSub.MixProject do
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
       {:genesis_credo, "~> 1.0.0", only: [:dev, :test], runtime: false, organization: "genesisblock"},
-      {:goth, "~> 1.2.0"},
+      {:goth, "~> 1.3.0"},
       {:hammox, "~> 0.3", only: [:test]},
       {:jason, "~> 1.2"},
       {:protobuf, "~> 0.9", only: [:test, :dev]},
