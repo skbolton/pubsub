@@ -4,8 +4,8 @@ defmodule GenesisPubSub.MixProject do
   def project() do
     [
       app: :genesis_pubsub,
-      version: "0.13.5",
-      elixir: "~> 1.13",
+      version: "0.13.6",
+      elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
@@ -19,7 +19,7 @@ defmodule GenesisPubSub.MixProject do
       dialyzer: [
         plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
         plt_add_apps: [:mix, :ex_unit],
-        flags: [:error_handling, :race_conditions, :unmatched_returns, :underspecs],
+        flags: [:error_handling, :unmatched_returns, :underspecs],
         list_unused_filters: true,
         ignore_warnings: ".dialyzer_ignore.exs"
       ]

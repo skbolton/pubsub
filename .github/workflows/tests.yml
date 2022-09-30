@@ -3,8 +3,8 @@ on: push
 env:
   MIX_ENV: test
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  ELIXIR_VERSION: 1.13.4
-  OTP_VERSION: 24.3.3
+  ELIXIR_VERSION: 1.14.0
+  OTP_VERSION: 25.1
 
 jobs:
   test:
@@ -14,7 +14,7 @@ jobs:
     services:
       db:
         image: postgres:12
-        ports: ['5432:5432']
+        ports: ["5432:5432"]
         env:
           POSTGRES_PASSWORD: postgres
 
@@ -103,7 +103,7 @@ jobs:
         with:
           path: deps
           key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-          restore-keys: | 
+          restore-keys: |
             ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-mix-
 
       - name: Cache Build
@@ -111,7 +111,7 @@ jobs:
         with:
           path: _build
           key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-          restore-keys: | 
+          restore-keys: |
             ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-
 
       - run: mix hex.organization auth genesisblock --key ${{ secrets.HEXPM_KEY}}
@@ -147,7 +147,7 @@ jobs:
         with:
           path: _build
           key: ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-          restore-keys: | 
+          restore-keys: |
             ${{ runner.os }}-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-build-${{ env.MIX_ENV }}-
 
       - name: Cache PLT
