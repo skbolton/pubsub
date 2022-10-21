@@ -3,6 +3,7 @@ import Config
 config :genesis_pubsub,
   json_codec: Jason,
   service: "testing",
+  test_mode?: true,
   adapter: MockAdapter
 
 config :genesis_pubsub, GenesisPubSub.Adapter.Google, auth_provider: GenesisPubSub.Adapter.Google.GothMock

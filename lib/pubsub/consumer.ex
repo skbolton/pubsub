@@ -17,6 +17,9 @@ defmodule GenesisPubSub.Consumer do
   otherwise you will force each test using your consumer to wait the full timeout for the
   `assert_receive`.
 
+  Default `processors` concurrency in tests will be 2; otherwise it is the Broadway default of 
+  `System.schedulers_online() * 2`.
+
   ## Example
 
       use GenesisPubSub.Consumer,
@@ -51,10 +54,15 @@ defmodule GenesisPubSub.Consumer do
             do: 1,
             else: Keyword.get(opts, :batch_timeout, 2000)
 
+        processors =
+          if test_mode?,
+            do: [default: [concurrency: 2]],
+            else: Keyword.get(opts, :processors, default: [])
+
         default_broadway_opts = [
           name: __MODULE__,
           producer: producer,
-          processors: [default: []],
+          processors: processors,
           batchers: [
             default: [
               batch_size: Keyword.get(opts, :batch_size, 10),

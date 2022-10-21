@@ -7,6 +7,7 @@ defmodule GenesisPubSub.ConsumerTest do
   alias GenesisPubSub.Consumer
   alias GenesisPubSub.Message
   alias GenesisPubSub.SchemaSpec
+  alias GenesisPubSub.TestGenesisConsumer
 
   setup :verify_on_exit!
 
@@ -171,6 +172,39 @@ defmodule GenesisPubSub.ConsumerTest do
       # do we receive ack events as clients
       ref = Consumer.test_batch(test_name, messages)
       assert_receive {:ack, ^ref, _successful, _failed}, 2000
+    end
+  end
+
+  describe "start_link/1" do
+    test "default process concurrency in test_mode" do
+      assert {:ok, _pid} = TestGenesisConsumer.start_link()
+
+      processors = Supervisor.which_children(GenesisPubSub.TestGenesisConsumer.Broadway.ProcessorSupervisor)
+
+      # ensure the ProcessorSupervisor's children are the processes we expect
+      assert Enum.all?(processors, &({_ref, _child_pid, :worker, [Broadway.Topology.ProcessorStage]} = &1))
+
+      # ensure we have the test default # of processors running
+      assert 2 == length(processors)
+    end
+
+    test "set processors concurrency in test mode" do
+      concurrency = 3
+
+      assert {:ok, _pid} =
+               TestGenesisConsumer.start_link(
+                 processors: [
+                   default: [concurrency: concurrency]
+                 ]
+               )
+
+      processors = Supervisor.which_children(GenesisPubSub.TestGenesisConsumer.Broadway.ProcessorSupervisor)
+
+      # ensure the ProcessorSupervisor's children are the processes we expect
+      assert Enum.all?(processors, &({_ref, _child_pid, :worker, [Broadway.Topology.ProcessorStage]} = &1))
+
+      # ensure we have the specified # of processors running
+      assert concurrency == length(processors)
     end
   end
 end
