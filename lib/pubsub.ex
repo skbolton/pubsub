@@ -3,7 +3,7 @@ defmodule GenesisPubSub do
   GenesisPubSub is split into 3 main components:
 
     * `GenesisPubSub.Message` - messages are data transmitted between contexts.
-      They model events that have occured that other contexts may be interested
+      They model events that have occurred that other contexts may be interested
       in.
 
     * `GenesisPubSub.Producer`- producers publish messages. Once a message has
@@ -53,7 +53,7 @@ defmodule GenesisPubSub do
   publish to, and a schema specification for the messages it produces.
 
   > Note: the schema specification gets encoded into the message. This means that
-  over the lifecyle of a producer it **can** change its schema spec without
+  over the lifecycle of a producer it **can** change its schema spec without
   breaking any existing consumers.
 
       def start(_type, _args) do
@@ -114,7 +114,7 @@ defmodule GenesisPubSub do
         end
 
         def process_message(%Message{data: %{"account_id" => id, first_name: first_name} = data}) do
-          Logger.info("Recieved account opened event: \#\{data}")
+          Logger.info("Received account opened event: \#\{data}")
           # publish email somehow
           Marketing.Emails.send_welcome_email(%{account_id: id, first_name})
           :ok
@@ -184,7 +184,7 @@ defmodule GenesisPubSub do
   This is useful if you have a context that can be called into to extract values
   that you would want to add to every message. An example could be unpacking a
   JWT to get at user user information to then add to metadata's user params.
-  Rather than having to manually add user information everywhere `Mssage.new/1`
+  Rather than having to manually add user information everywhere `Message.new/1`
   is called.
 
     # config.exs

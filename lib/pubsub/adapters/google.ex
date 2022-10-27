@@ -91,7 +91,8 @@ defmodule GenesisPubSub.Adapter.Google do
       {:ok, %{messageIds: published_message_ids}} ->
         # for each published message set publish-time metadata to original message
         messages =
-          Enum.zip(messages, published_message_ids)
+          messages
+          |> Enum.zip(published_message_ids)
           |> Enum.map(fn {message, published_message_id} ->
             set_published_meta(message, published_message_id)
           end)

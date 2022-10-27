@@ -27,7 +27,8 @@ defmodule GenesisPubSub.Adapter.Google.HTTPClient do
 
     with {:ok, project_id} <- config.get(:project_id),
          base_url <- base_url() do
-      post(base_url <> "/v1/projects/#{project_id}/topics/#{topic}:publish", %{messages: messages}, headers: headers())
+      (base_url <> "/v1/projects/#{project_id}/topics/#{topic}:publish")
+      |> post(%{messages: messages}, headers: headers())
       |> parse_response()
     end
   end

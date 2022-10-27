@@ -208,7 +208,8 @@ defmodule GenesisPubSub.ProducerTest do
       schema_spec = SchemaSpec.json()
 
       message =
-        Message.new(data: %{account_id: "123", first_name: "Bob"})
+        [data: %{account_id: "123", first_name: "Bob"}]
+        |> Message.new()
         |> Message.put_meta(:schema, schema_spec)
 
       {:ok, message: message}
@@ -250,7 +251,7 @@ defmodule GenesisPubSub.ProducerTest do
     end
 
     test "publish start/end is called properly for multiple messages", %{message: message, test: test_name} do
-      second_message = Message.follow(message) |> Message.put_meta(:schema, SchemaSpec.json())
+      second_message = message |> Message.follow() |> Message.put_meta(:schema, SchemaSpec.json())
 
       :telemetry.attach(
         "#{test_name}-start",
@@ -310,7 +311,7 @@ defmodule GenesisPubSub.ProducerTest do
     end
 
     test "publish_failure is called on failed publish of multiple messages", %{message: message, test: test_name} do
-      second_message = Message.follow(message) |> Message.put_meta(:schema, SchemaSpec.json())
+      second_message = message |> Message.follow() |> Message.put_meta(:schema, SchemaSpec.json())
 
       :telemetry.attach(
         "#{test_name}-end",

@@ -42,7 +42,8 @@ defmodule GenesisPubSub.Adapter.Google.Mock do
     ids = 1..Enum.count(messages)
 
     messages =
-      Enum.zip(messages, ids)
+      messages
+      |> Enum.zip(ids)
       |> Enum.map(fn {message, published_message_id} ->
         Google.set_published_meta(message, published_message_id)
       end)

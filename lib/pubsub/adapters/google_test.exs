@@ -118,7 +118,7 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
       assert %{metadata: %{adapter_event_id: ^event_id, published_at: %DateTime{}}} = message
 
       first_message = message
-      second_message = Message.follow(message) |> Message.put_meta(:schema, SchemaSpec.json())
+      second_message = message |> Message.follow() |> Message.put_meta(:schema, SchemaSpec.json())
 
       {:ok, [message_one, message_two]} = Google.publish("a-topic", [first_message, second_message])
 
@@ -128,7 +128,8 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
 
     test "multiple messages are handled correctly", %{message: message} do
       next_message =
-        Message.follow(message)
+        message
+        |> Message.follow()
         |> Message.put_meta(:schema, SchemaSpec.json())
 
       TeslaMock
@@ -375,7 +376,8 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
     schema_spec = SchemaSpec.json()
 
     message =
-      Message.new(data: %{account_id: "123", first_name: "Bob"})
+      [data: %{account_id: "123", first_name: "Bob"}]
+      |> Message.new()
       |> Message.put_meta(:schema, schema_spec)
 
     {:ok, message: message}

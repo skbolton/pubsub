@@ -36,7 +36,8 @@ defmodule GenesisPubSub.Adapter.Google.MockTest do
       message = Message.new(data: %{field: "value"}, metadata: %{schema: SchemaSpec.json()})
 
       next_message =
-        Message.follow(message, include: [:field])
+        message
+        |> Message.follow(include: [:field])
         |> Message.put_meta(:schema, SchemaSpec.json())
 
       assert {:ok, [first_published, second_published]} = Mock.publish("some-topic", [message, next_message])
