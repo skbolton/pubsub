@@ -2,6 +2,11 @@
 
 A Message and event utility library for pub/sub systems.
 
+## Documentation
+
+  * [API Docs](https://genesisblock.hexdocs.pm/genesis_pubsub)
+  * [Testing Guide](https://genesisblock.hexdocs.pm/genesis_pubsub/testing.html)
+
 ## Installation
 
 ```bash
@@ -15,10 +20,6 @@ def deps do
   ]
 end
 ```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://genesisblock.hexdocs.pm/genesis_pubsub](https://genesisblock.hexdocs.pm/genesis_pubsub).
 
 ## Development
 
