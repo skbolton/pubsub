@@ -48,7 +48,7 @@ defmodule PubSub.MixProject do
       {:excoveralls, "~> 0.10", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:google_api_pub_sub, "~> 0.36"},
-      {:goth, "~> 1.3.0"},
+      {:goth, "~> 1.4.1"},
       {:hammox, "~> 0.3", only: [:test]},
       {:jason, "~> 1.2"},
       {:protobuf, "~> 0.9", only: [:test, :dev]},
