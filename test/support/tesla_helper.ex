@@ -1,4 +1,4 @@
-defmodule GenesisPubSub.Support.TeslaHelper do
+defmodule PubSub.Support.TeslaHelper do
   def response(args) do
     {:ok,
      %Tesla.Env{

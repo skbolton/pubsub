@@ -1,7 +1,7 @@
-defmodule GenesisPubSub.Message.MetadataTest do
+defmodule PubSub.Message.MetadataTest do
   use ExUnit.Case, async: true
-  alias GenesisPubSub.Message.Metadata
-  alias GenesisPubSub.SchemaSpec
+  alias PubSub.Message.Metadata
+  alias PubSub.SchemaSpec
 
   setup_all do
     # simple agent that we can assign merge properties to

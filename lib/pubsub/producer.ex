@@ -1,24 +1,24 @@
-defmodule GenesisPubSub.Producer do
+defmodule PubSub.Producer do
   @moduledoc """
   Producer of messages to a topic
 
   Starting a producer, consider doing this in a supervision tree:
 
-      {:ok, my_producer} = GenesisPubSub.Producer.start_link(Producer.Config.new(%{
+      {:ok, my_producer} = PubSub.Producer.start_link(Producer.Config.new(%{
         name: MyProducer,
         topic: "my-topic",
         schema: SchemaSpec.json(),
-        adapter: GenesisPubSub.Adapter.Google
+        adapter: PubSub.Adapter.Google
       }))
 
   Publishing through producer:
 
-      GenesisPubSub.Producer.publish(MyProducer, Message.new())
+      PubSub.Producer.publish(MyProducer, Message.new())
   """
-  alias GenesisPubSub.Message
-  alias GenesisPubSub.Producer
-  alias GenesisPubSub.SchemaSpec
-  alias GenesisPubSub.Telemetry
+  alias PubSub.Message
+  alias PubSub.Producer
+  alias PubSub.SchemaSpec
+  alias PubSub.Telemetry
 
   @type topic :: String.t()
 
@@ -37,11 +37,11 @@ defmodule GenesisPubSub.Producer do
     * `topic` - topic name producer produces to
 
     * `schema` - schema information for how encode/decode messages
-      See `GenesisPubSub.SchemaSpec` for supported encoders.
+      See `PubSub.SchemaSpec` for supported encoders.
 
     * `adapter` - module with `adapter` behaviour
       Defaults to `adapter` configured in Application env. See
-      `GenesisPubSub`
+      `PubSub`
 
       * `max_retry_duration` - max number of milliseconds that publish will retry if process fails
       Defaults to zero milliseconds (no retries)
@@ -63,9 +63,9 @@ defmodule GenesisPubSub.Producer do
     def new(params) do
       params_with_defaults =
         params
-        |> Map.put_new(:adapter, GenesisPubSub.adapter())
+        |> Map.put_new(:adapter, PubSub.adapter())
         |> Map.put_new(:max_retry_duration, 0)
-        |> Map.put(:service, GenesisPubSub.service())
+        |> Map.put(:service, PubSub.service())
 
       struct!(__MODULE__, params_with_defaults)
     end

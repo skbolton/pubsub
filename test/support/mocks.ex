@@ -1,2 +1,2 @@
-Hammox.defmock(MockAdapter, for: GenesisPubSub.Adapter)
-Hammox.defmock(TeslaMock, for: GenesisPubSub.Behaviour.Tesla)
+Hammox.defmock(MockAdapter, for: PubSub.Adapter)
+Hammox.defmock(TeslaMock, for: PubSub.Behaviour.Tesla)

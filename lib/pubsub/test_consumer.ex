@@ -1,6 +1,6 @@
-defmodule GenesisPubSub.TestGenesisConsumer do
+defmodule PubSub.TestConsumer do
   @moduledoc false
-  use GenesisPubSub.Consumer
+  use PubSub.Consumer
 
   def handle_message(_processor, message, _context) do
     message

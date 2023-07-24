@@ -1,4 +1,4 @@
-defmodule GenesisPubSub.Message do
+defmodule PubSub.Message do
   @moduledoc """
   Messages are packages of data that transmit between contexts.  They typically
   represent business events that have occured and allow other contexts to react
@@ -10,7 +10,7 @@ defmodule GenesisPubSub.Message do
   Messages are broken into two fields: `data` and `metadata`. `data` is unique to
   the event. It contains pertinent information to the business process that
   created it. This field also supports structured schemas. See:
-  `GenesisPubSub.SchemaSpec`.
+  `PubSub.SchemaSpec`.
 
   `metadata` on the other hand is much more mechanical and informational. It
   helps support showing the connectedness and context around a message. Reading
@@ -19,7 +19,7 @@ defmodule GenesisPubSub.Message do
   metadata between two messages automatically.
 
   Instead of modifying or creating the struct directly, use the
-  `GenesisPubSub.Message.new/1` or `GenesisPubSub.Message.follow/2` functions
+  `PubSub.Message.new/1` or `PubSub.Message.follow/2` functions
   based on your use case.
 
   ## Message workflows
@@ -39,16 +39,16 @@ defmodule GenesisPubSub.Message do
   The Account context is the first action in the chain. Maybe a web form supplies
   information that causes this workflow to kick off. Since they are the first
   event and not respondig to a previous event they use
-  `GenesisPubSub.Message.new/1`
+  `PubSub.Message.new/1`
 
       account_opened = Messages.new(data: %{account_id: "123", first_name: "Bob"})
-      GenesisPubSub.Producer.publish(AccountOpenedProducer, account_opened)
+      PubSub.Producer.publish(AccountOpenedProducer, account_opened)
 
   ### Sales Context
 
   When new accounts are created the sales context kicks in and assigns a rep.
   Since we are responding to a previous event we should leverage
-  `GenesisPubSub.Message.follow/2` to correlate the two events.
+  `PubSub.Message.follow/2` to correlate the two events.
 
       def assign_rep(%Message{data: %{account_id: id}, metadata: %{topic: "account-opened"}}) do
         # do work of assigning rep
@@ -59,7 +59,7 @@ defmodule GenesisPubSub.Message do
         # add additional fields
         |> Message.put(:rep_name, "Tony Robbins")
 
-        GenesisPubSub.Producer.publish(RepAssignedProducer, rep_assigned)
+        PubSub.Producer.publish(RepAssignedProducer, rep_assigned)
       end
 
   ### Marketing Context
@@ -72,7 +72,7 @@ defmodule GenesisPubSub.Message do
 
         welcome_email_sent = Message.follow(rep_assigned, exclude: [])
 
-        GenesisPubSub.Producer.publish(WelcomeEmailProducer, send_welcome_email)
+        PubSub.Producer.publish(WelcomeEmailProducer, send_welcome_email)
       end
 
   ### Outcome
@@ -89,8 +89,8 @@ defmodule GenesisPubSub.Message do
   span over any amount of time.
   """
 
-  alias GenesisPubSub.Message.Metadata
-  alias GenesisPubSub.SchemaSpec
+  alias PubSub.Message.Metadata
+  alias PubSub.SchemaSpec
 
   @enforce_keys [:data, :metadata]
   defstruct [:data, :metadata]
@@ -113,7 +113,7 @@ defmodule GenesisPubSub.Message do
         }
 
   @typedoc """
-  A `GenesisPubSub.SchemaSpec` can be used to encode a message to prepare it to
+  A `PubSub.SchemaSpec` can be used to encode a message to prepare it to
   be sent through an adapter.
   """
   @type serialized_t :: %{data: String.t(), metadata: map()}
@@ -131,13 +131,13 @@ defmodule GenesisPubSub.Message do
 
   Passing initial data for message.
 
-      iex> message = GenesisPubSub.Message.new(data: %{account_id: "123"})
+      iex> message = PubSub.Message.new(data: %{account_id: "123"})
       iex> message.data
       %{account_id: "123"}
 
   Scaffolding out an empty message
 
-      iex> message = GenesisPubSub.Message.new()
+      iex> message = PubSub.Message.new()
       iex> message.data
       %{}
   """

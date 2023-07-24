@@ -1,4 +1,4 @@
-defmodule GenesisPubSub.Adapter.Google.HTTPClient do
+defmodule PubSub.Adapter.Google.HTTPClient do
   @moduledoc """
   REST client for communicating with Google Cloud PubSub.
 
@@ -6,8 +6,8 @@ defmodule GenesisPubSub.Adapter.Google.HTTPClient do
   """
   use Tesla
 
-  alias GenesisPubSub.Adapter.Google
-  alias GenesisPubSub.Producer
+  alias PubSub.Adapter.Google
+  alias PubSub.Producer
   alias GoogleApi.PubSub.V1.Api.Projects
   alias GoogleApi.PubSub.V1.Connection
   alias GoogleApi.PubSub.V1.Model.Subscription

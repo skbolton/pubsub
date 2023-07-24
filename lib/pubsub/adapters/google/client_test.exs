@@ -1,9 +1,9 @@
-defmodule GenesisPubSub.Adapter.Google.HTTPClientTest do
+defmodule PubSub.Adapter.Google.HTTPClientTest do
   use ExUnit.Case, async: true
   import Hammox
 
-  alias GenesisPubSub.Adapter.Google.HTTPClient
-  alias GenesisPubSub.Support.TeslaHelper
+  alias PubSub.Adapter.Google.HTTPClient
+  alias PubSub.Support.TeslaHelper
 
   setup :verify_on_exit!
 

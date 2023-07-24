@@ -1,4 +1,4 @@
-defmodule GenesisPubSub.Adapter.Google.Mock do
+defmodule PubSub.Adapter.Google.Mock do
   @moduledoc """
   A mock google adapter that keeps same contract without making any external
   calls. This module pairs well with Mox to assert how the adapter was called.
@@ -6,25 +6,25 @@ defmodule GenesisPubSub.Adapter.Google.Mock do
   > The only change in contract is the choice of ids. Google seems to pick a
   sequential id. To help make events unique this module substitutes uuids.
 
-      Mox.defmock(MockAdapter, for: GenesisPubSub.Adapter)
+      Mox.defmock(MockAdapter, for: PubSub.Adapter)
 
       Mox.expect(MockAdapter, :publish, fn producer, message ->
         # do any assertions needed
         # ...snip...
         # use google mock to keep same contract
-        GenesisPubSub.Adapter.Google.Mock.publish(topic, message)
+        PubSub.Adapter.Google.Mock.publish(topic, message)
       end)
 
-      {:ok, published_message} = GenesisPubSub.Producer.publish(MyProducer, message)
+      {:ok, published_message} = PubSub.Producer.publish(MyProducer, message)
 
   See Testing Guide for more explanation on testing producers and consumers.
   """
-  @behaviour GenesisPubSub.Adapter
+  @behaviour PubSub.Adapter
 
-  alias GenesisPubSub.Adapter.Google
-  alias GenesisPubSub.Message
+  alias PubSub.Adapter.Google
+  alias PubSub.Message
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   def publish(_topic, %Message{} = message) do
     # Verify encoding works
     {:ok, _encoded_message} = Message.encode(message)
@@ -32,7 +32,7 @@ defmodule GenesisPubSub.Adapter.Google.Mock do
     {:ok, published_message}
   end
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   def publish(_topic, [%Message{} | _others] = messages) do
     # Verify encoding works
     Enum.each(messages, fn message ->
@@ -51,16 +51,16 @@ defmodule GenesisPubSub.Adapter.Google.Mock do
     {:ok, messages}
   end
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   defdelegate unpack(message), to: Google
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   defdelegate unpack_metadata(message), to: Google
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   defdelegate pack(acknowledger, batch_mode, message), to: Google
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   def broadway_producer(_opts) do
     [module: {Broadway.DummyProducer, []}]
   end

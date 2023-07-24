@@ -1,18 +1,18 @@
-defmodule GenesisPubSub.ConsumerTest do
+defmodule PubSub.ConsumerTest do
   use ExUnit.Case, async: true
 
   import Hammox
 
-  alias GenesisPubSub.Adapter.Testing
-  alias GenesisPubSub.Consumer
-  alias GenesisPubSub.Message
-  alias GenesisPubSub.SchemaSpec
-  alias GenesisPubSub.TestGenesisConsumer
+  alias PubSub.Adapter.Testing
+  alias PubSub.Consumer
+  alias PubSub.Message
+  alias PubSub.SchemaSpec
+  alias PubSub.TestConsumer
 
   setup :verify_on_exit!
 
   setup context do
-    {:ok, _pid} = GenesisPubSub.TestBroadwayConsumer.start_link(name: context.test)
+    {:ok, _pid} = PubSub.TestBroadwayConsumer.start_link(name: context.test)
 
     :ok
   end
@@ -177,9 +177,9 @@ defmodule GenesisPubSub.ConsumerTest do
 
   describe "start_link/1" do
     test "default process concurrency in test_mode" do
-      assert {:ok, _pid} = TestGenesisConsumer.start_link()
+      assert {:ok, _pid} = TestConsumer.start_link()
 
-      processors = Supervisor.which_children(GenesisPubSub.TestGenesisConsumer.Broadway.ProcessorSupervisor)
+      processors = Supervisor.which_children(PubSub.TestConsumer.Broadway.ProcessorSupervisor)
 
       # ensure the ProcessorSupervisor's children are the processes we expect
       assert Enum.all?(processors, &({_ref, _child_pid, :worker, [Broadway.Topology.ProcessorStage]} = &1))
@@ -192,13 +192,13 @@ defmodule GenesisPubSub.ConsumerTest do
       concurrency = 3
 
       assert {:ok, _pid} =
-               TestGenesisConsumer.start_link(
+               TestConsumer.start_link(
                  processors: [
                    default: [concurrency: concurrency]
                  ]
                )
 
-      processors = Supervisor.which_children(GenesisPubSub.TestGenesisConsumer.Broadway.ProcessorSupervisor)
+      processors = Supervisor.which_children(PubSub.TestConsumer.Broadway.ProcessorSupervisor)
 
       # ensure the ProcessorSupervisor's children are the processes we expect
       assert Enum.all?(processors, &({_ref, _child_pid, :worker, [Broadway.Topology.ProcessorStage]} = &1))

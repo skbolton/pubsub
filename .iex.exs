@@ -1,1 +1,1 @@
-alias GenesisPubSub.{Adapter, Consumer, Message, Producer, SchemaSpec}
+alias PubSub.{Adapter, Consumer, Message, Producer, SchemaSpec}

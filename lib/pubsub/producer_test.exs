@@ -1,10 +1,10 @@
-defmodule GenesisPubSub.ProducerTest do
+defmodule PubSub.ProducerTest do
   use ExUnit.Case, async: true
   import Hammox
-  alias GenesisPubSub.Adapter.Testing
-  alias GenesisPubSub.Message
-  alias GenesisPubSub.Producer
-  alias GenesisPubSub.SchemaSpec
+  alias PubSub.Adapter.Testing
+  alias PubSub.Message
+  alias PubSub.Producer
+  alias PubSub.SchemaSpec
 
   setup :verify_on_exit!
 

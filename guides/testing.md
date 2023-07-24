@@ -1,12 +1,12 @@
 # Testing PubSub
 
-GenesisPubSub was designed to work well with [Mox](https://hexdocs.pm/mox) and the following guide will assume that you are somewhat familiar with it.
+PubSub was designed to work well with [Mox](https://hexdocs.pm/mox) and the following guide will assume that you are somewhat familiar with it.
 
-To start we need to update configuration options to support testing. First, we configure our `GenesisPubSub.Adapter` behaviour to be a Mox defined mock. This allows us to define expectations for how the adapter was called when testing Producers and Consumers. Next, we enable test_mode? which will help in testing our consumers. See "Consumers".
+To start we need to update configuration options to support testing. First, we configure our `PubSub.Adapter` behaviour to be a Mox defined mock. This allows us to define expectations for how the adapter was called when testing Producers and Consumers. Next, we enable test_mode? which will help in testing our consumers. See "Consumers".
 
 ```elixir
 # in some test support file
-Mox.defmock(PubSubAdapterMock, for: GenesisPubSub.Adapter)
+Mox.defmock(PubSubAdapterMock, for: PubSub.Adapter)
 
 # config/test.exs
 config :pubsub,
@@ -18,15 +18,15 @@ Also, each adapter provides a `Mock` version that keeps the same overall behavio
 
 ```elixir
 # stubbing individual function
-Mox.stub(PubSubAdapterMock, :publish, &GenesisPubSub.Adapter.Google.Mock.publish/2)
+Mox.stub(PubSubAdapterMock, :publish, &PubSub.Adapter.Google.Mock.publish/2)
 
 # stubbing all functions
-Mox.stub_with(PubSubAdapterMock, GenesisPubSub.Adapter.Google.Mock)
+Mox.stub_with(PubSubAdapterMock, PubSub.Adapter.Google.Mock)
 
 # defining an expectation and using mock to return proper value
 # for example if we want to assert we published to the right producer
 Mox.expect(PubSubAdapterMock, :publish, fn MyProducer, message ->
-  GenesisPubSub.Adapter.Google.Mock.publish(MyProducer, message)
+  PubSub.Adapter.Google.Mock.publish(MyProducer, message)
 end)
 ```
 
@@ -41,7 +41,7 @@ test "correct topic is published to" do
   Mox.expect(PubSubAdapterMock, :publish, fn producer, message ->
     assert message.metadata.topic = "expected-topic"
     # return proper value
-    GenesisPubSub.Adapter.Google.Mock.publish(producer, message)
+    PubSub.Adapter.Google.Mock.publish(producer, message)
   end)
 
   BusinessLogic.execute()
@@ -67,10 +67,10 @@ With this a unique process exists that our pipeline is running in per test. The 
 
 ```elixir
 test "...", %{consumer: consumer}
-  Mox.stub(PubSubAdapterMock, :unpack, &GenesisPubSub.Adapter.Google.Mock.unpack/1)
+  Mox.stub(PubSubAdapterMock, :unpack, &PubSub.Adapter.Google.Mock.unpack/1)
 
   # Mox will spit out an exception
-  GenesisPubSub.Consumer.test_message(consumer, Message.new(...))
+  PubSub.Consumer.test_message(consumer, Message.new(...))
 end
 ```
 
@@ -96,7 +96,7 @@ end
 
 ```elixir
 defmodule MyApp.MyConsumer do
-  use GenesisPubSub.Consumer, ...
+  use PubSub.Consumer, ...
 
   def handle_message(_processor, message, context) do
     allow(context, self())
@@ -110,13 +110,13 @@ end
 
 With the handling Mox multi process collaboration we can now focus on writing tests.
 
-Broadway offers a `Broadway.test_message/2` function that can be passed a Broadway module and some data, it will then create a broadway message and send it through the pipeline. Our issue is that we also want all of the metadata in place for each message. It would be a pain to have to build this yourself. To help in this regard the `GenesisPubSub.Consumer.test_message/2` function exists. It also takes in a Broadway module but as the second argument it takes in a `GenesisPubSub.Message`. It will then do the work to get the message into the proper shape to run through the pipeline as a Broadway message.
+Broadway offers a `Broadway.test_message/2` function that can be passed a Broadway module and some data, it will then create a broadway message and send it through the pipeline. Our issue is that we also want all of the metadata in place for each message. It would be a pain to have to build this yourself. To help in this regard the `PubSub.Consumer.test_message/2` function exists. It also takes in a Broadway module but as the second argument it takes in a `PubSub.Message`. It will then do the work to get the message into the proper shape to run through the pipeline as a Broadway message.
 
 ```elixir
 # be sure to be sharing expectations as described above
 test "message is handled", context do
   # create a published message
-  message = GenesisPubSub.Message.new(
+  message = PubSub.Message.new(
     data: %{account_id: "123"},
     metadata: %{
       event_id: UUID.uuid4(),
@@ -124,12 +124,12 @@ test "message is handled", context do
       published_at: DateTime.utc_now(),
       service: "testing",
       topic: "some-topic",
-      schema: GenesisPubSub.SchemaSpec.json()
+      schema: PubSub.SchemaSpec.json()
     }
   )
 
   # now run it through our pipeline
-  ref = GenesisPubSub.Consumer.test_message(context.test, message)
+  ref = PubSub.Consumer.test_message(context.test, message)
   assert_receive {:ack, ^ref, [_] = _successful, [] = _failed}, 2000
 end
 ```
@@ -138,7 +138,7 @@ end
 
 ```elixir
 defmodule MyApp.MyConsumer do
-  use GenesisPubSub.Consumer,
+  use PubSub.Consumer,
     topic: "card-transactions.transaction-processed",
     subscription: "card-transactions.transaction-sanitization"
 
@@ -146,7 +146,7 @@ defmodule MyApp.MyConsumer do
     allow(context, self())
 
     message
-    |> GenesisPubSub.Consumer.unpack()
+    |> PubSub.Consumer.unpack()
     |> BusinessLogic.execute()
 
     message

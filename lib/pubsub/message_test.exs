@@ -1,8 +1,8 @@
-defmodule GenesisPubSub.MessageTest do
+defmodule PubSub.MessageTest do
   use ExUnit.Case, async: true
-  alias GenesisPubSub.Message
+  alias PubSub.Message
 
-  doctest GenesisPubSub.Message
+  doctest PubSub.Message
 
   describe "Message.new/1" do
     test "default metadata is applied" do

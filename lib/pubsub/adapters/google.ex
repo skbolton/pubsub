@@ -1,6 +1,6 @@
-defmodule GenesisPubSub.Adapter.Google do
+defmodule PubSub.Adapter.Google do
   @moduledoc """
-  `GenesisPubSub.Adapter` implementation using google cloud pubsub
+  `PubSub.Adapter` implementation using google cloud pubsub
 
   Docs: https://cloud.google.com/pubsub/docs
 
@@ -10,7 +10,7 @@ defmodule GenesisPubSub.Adapter.Google do
   through Application env. The following shows what the defaults are for the
   values.
 
-      config :genesis_pubsub, GenesisPubSub.Adapter.Google
+      config :genesis_pubsub, PubSub.Adapter.Google
         auth_provider: Goth
 
   To change the base url you will need to set it on the google_api_pub_sub dep.
@@ -18,18 +18,18 @@ defmodule GenesisPubSub.Adapter.Google do
       config :google_api_pub_sub, base_url: "http://pubsub.google.com"
 
   To use the Google Adapter in the project either configure it as the adapter in
-  GenesisPubSub env.
+  PubSub env.
 
       config :genesis_pubsub,
         # ...snip....
-        adapter: GenesisPubSub.Adapter.Google
+        adapter: PubSub.Adapter.Google
 
   Or pass as option to a Producer:
 
-      {:ok, _pid} = GenesisPubSub.Producer.start_link(
-        GenesisPubSub.Producer.Config.new(%{
+      {:ok, _pid} = PubSub.Producer.start_link(
+        PubSub.Producer.Config.new(%{
           # ...snip...
-          adapter: GenesisPubSub.Adapter.Google
+          adapter: PubSub.Adapter.Google
         })
       )
 
@@ -39,13 +39,13 @@ defmodule GenesisPubSub.Adapter.Google do
       config :tesla, adapter: Tesla.Adapter.Hackney
 
   """
-  @behaviour GenesisPubSub.Adapter
+  @behaviour PubSub.Adapter
 
-  alias GenesisPubSub.Adapter.Google.HTTPClient
-  alias GenesisPubSub.Adapter.Google.TokenGenerator
-  alias GenesisPubSub.Message
-  alias GenesisPubSub.Message.Metadata
-  alias GenesisPubSub.SchemaSpec
+  alias PubSub.Adapter.Google.HTTPClient
+  alias PubSub.Adapter.Google.TokenGenerator
+  alias PubSub.Message
+  alias PubSub.Message.Metadata
+  alias PubSub.SchemaSpec
 
   def auth_provider() do
     :genesis_pubsub
@@ -53,7 +53,7 @@ defmodule GenesisPubSub.Adapter.Google do
     |> Keyword.get(:auth_provider, Goth)
   end
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   def publish(topic, %Message{} = message) do
     # encode message content
     {:ok, %{data: encoded_data, metadata: encoded_metadata}} = Message.encode(message)
@@ -76,7 +76,7 @@ defmodule GenesisPubSub.Adapter.Google do
     end
   end
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   def publish(topic, [%Message{} | _others] = messages) do
     encoded_messages =
       Enum.map(messages, fn message ->
@@ -104,7 +104,7 @@ defmodule GenesisPubSub.Adapter.Google do
     end
   end
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   def unpack(%Broadway.Message{data: data} = message) do
     metadata = unpack_metadata(message)
 
@@ -113,7 +113,7 @@ defmodule GenesisPubSub.Adapter.Google do
     Message.new(data: decoded_data, metadata: metadata)
   end
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   # gcloud pubsub calls metadata "attributes"
   # Broadway sticks it under a key of that name in metadata field
   def unpack_metadata(%Broadway.Message{
@@ -130,7 +130,7 @@ defmodule GenesisPubSub.Adapter.Google do
     |> Metadata.from_encodable()
   end
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   def pack(acknowledger, batch_mode, %Message{} = message) do
     {:ok, %{data: data, metadata: meta}} = Message.encode(message)
 
@@ -154,7 +154,7 @@ defmodule GenesisPubSub.Adapter.Google do
 
   # gcloud pubsub doesn't support sending nil values at any of the attribute fields
   # having these fields missing in attributes won't cause any harm because
-  # GenesisPubSub.Adapter.Google.unpack/1 will grab the values from the correct place
+  # PubSub.Adapter.Google.unpack/1 will grab the values from the correct place
   # and build the message.
   defp trim_nil_values(map) do
     map
@@ -172,12 +172,12 @@ defmodule GenesisPubSub.Adapter.Google do
     |> Message.put_meta(:published_at, DateTime.utc_now())
   end
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   @doc """
   Returns the options necessary for the broadway producer key.
 
   Only the `:subscription` opt is required, however, it is recommended to also set the `:topic` opt
-  to be compatible with the `GenesisPubSub.Adapater.GoogleLocal` adapter to enable creating
+  to be compatible with the `PubSub.Adapater.GoogleLocal` adapter to enable creating
   topics and subscriptions in dev environments.
   """
   def broadway_producer(opts) do

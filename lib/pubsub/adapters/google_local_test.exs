@@ -1,9 +1,9 @@
-defmodule GenesisPubSub.Adapter.GoogleLocalTest do
+defmodule PubSub.Adapter.GoogleLocalTest do
   use ExUnit.Case, async: true
   import Hammox
 
-  alias GenesisPubSub.Adapter.GoogleLocal
-  alias GenesisPubSub.Support.TeslaHelper
+  alias PubSub.Adapter.GoogleLocal
+  alias PubSub.Support.TeslaHelper
 
   setup :verify_on_exit!
 
@@ -50,7 +50,7 @@ defmodule GenesisPubSub.Adapter.GoogleLocalTest do
                module:
                  {BroadwayCloudPubSub.Producer,
                   subscription: "projects/testing/subscriptions/test-subscription",
-                  token_generator: {GenesisPubSub.Adapter.Google.TokenGenerator, :fetch_token, []}}
+                  token_generator: {PubSub.Adapter.Google.TokenGenerator, :fetch_token, []}}
              ] ==
                GoogleLocal.broadway_producer(topic: "test-topic", subscription: "test-subscription")
     end
@@ -80,7 +80,7 @@ defmodule GenesisPubSub.Adapter.GoogleLocalTest do
                module:
                  {BroadwayCloudPubSub.Producer,
                   subscription: "projects/testing/subscriptions/test-subscription",
-                  token_generator: {GenesisPubSub.Adapter.Google.TokenGenerator, :fetch_token, []}}
+                  token_generator: {PubSub.Adapter.Google.TokenGenerator, :fetch_token, []}}
              ] ==
                GoogleLocal.broadway_producer(topic: "test-topic", subscription: "test-subscription")
     end

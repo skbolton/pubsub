@@ -1,5 +1,5 @@
-defmodule GenesisPubSub.Adapter.Google.TokenGenerator do
-  alias GenesisPubSub.Adapter.Google
+defmodule PubSub.Adapter.Google.TokenGenerator do
+  alias PubSub.Adapter.Google
 
   @scope "https://www.googleapis.com/auth/pubsub"
 

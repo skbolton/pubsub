@@ -1,7 +1,7 @@
-defmodule GenesisPubSub.Producer.Server do
+defmodule PubSub.Producer.Server do
   @moduledoc false
   use Agent
-  alias GenesisPubSub.Producer.Config
+  alias PubSub.Producer.Config
 
   def child_spec(%Config{name: name} = config) do
     %{

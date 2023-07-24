@@ -1,13 +1,13 @@
-defmodule GenesisPubSub.Adapter.Testing do
-  @behaviour GenesisPubSub.Adapter
+defmodule PubSub.Adapter.Testing do
+  @behaviour PubSub.Adapter
 
-  alias GenesisPubSub.Message
-  alias GenesisPubSub.Message.Metadata
-  alias GenesisPubSub.SchemaSpec
+  alias PubSub.Message
+  alias PubSub.Message.Metadata
+  alias PubSub.SchemaSpec
 
   require Logger
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   def publish(_topic, [%Message{} | _rest] = messages) do
     published_messages =
       Enum.map(messages, fn message ->
@@ -20,7 +20,7 @@ defmodule GenesisPubSub.Adapter.Testing do
     {:ok, published_messages}
   end
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   def publish(_topic, %Message{} = message) do
     published_message =
       message
@@ -31,7 +31,7 @@ defmodule GenesisPubSub.Adapter.Testing do
     {:ok, published_message}
   end
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   def unpack(%Broadway.Message{data: data} = message) do
     # for testing we just return any `Message.published_t()`
     Message.new(
@@ -40,7 +40,7 @@ defmodule GenesisPubSub.Adapter.Testing do
     )
   end
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   def unpack_metadata(_message) do
     # for testing we just return any `Message.published_t()`
     Metadata.new(%{
@@ -54,7 +54,7 @@ defmodule GenesisPubSub.Adapter.Testing do
     })
   end
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   def pack(acknowledger, batch_mode, %Message{} = message) do
     %Broadway.Message{
       data: message.data,
@@ -64,7 +64,7 @@ defmodule GenesisPubSub.Adapter.Testing do
     }
   end
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   def broadway_producer(_opts) do
     [module: {Broadway.DummyProducer, []}]
   end

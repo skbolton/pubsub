@@ -1,6 +1,6 @@
-defmodule GenesisPubSub.SchemaSpecTest do
+defmodule PubSub.SchemaSpecTest do
   use ExUnit.Case, async: true
-  alias GenesisPubSub.SchemaSpec
+  alias PubSub.SchemaSpec
 
   describe "schema spec creation" do
     test "json/0 creates a json based schema spec" do

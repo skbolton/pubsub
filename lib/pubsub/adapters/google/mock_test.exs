@@ -1,8 +1,8 @@
-defmodule GenesisPubSub.Adapter.Google.MockTest do
+defmodule PubSub.Adapter.Google.MockTest do
   use ExUnit.Case, async: true
-  alias GenesisPubSub.Adapter.Google.Mock
-  alias GenesisPubSub.Message
-  alias GenesisPubSub.SchemaSpec
+  alias PubSub.Adapter.Google.Mock
+  alias PubSub.Message
+  alias PubSub.SchemaSpec
 
   describe "publish/2" do
     test "handles a single message" do
@@ -17,7 +17,7 @@ defmodule GenesisPubSub.Adapter.Google.MockTest do
       bad_proto = TestProto.new(account_id: true)
       good_proto = TestProto.new(account_id: "123", name: "Randy Savage")
 
-      # Genesis.Producer.publish adds the schema spec to messages
+      # PubSub.Producer.publish adds the schema spec to messages
       # in these tests we need to add it manually
       assert_raise MatchError, fn ->
         Mock.publish("some-topic", Message.new(data: bad_proto, metadata: %{schema: SchemaSpec.proto(TestProto)}))
@@ -31,7 +31,7 @@ defmodule GenesisPubSub.Adapter.Google.MockTest do
     end
 
     test "handles many messages" do
-      # Genesis.Producer.publish adds the schema spec to messages
+      # PubSub.Producer.publish adds the schema spec to messages
       # in these tests we need to add it manually though
       message = Message.new(data: %{field: "value"}, metadata: %{schema: SchemaSpec.json()})
 

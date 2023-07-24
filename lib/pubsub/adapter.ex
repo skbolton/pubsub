@@ -1,10 +1,10 @@
-defmodule GenesisPubSub.Adapter do
+defmodule PubSub.Adapter do
   @moduledoc """
   External pubsub systems implemenations.
   """
-  alias GenesisPubSub.Message
-  alias GenesisPubSub.Message.Metadata
-  alias GenesisPubSub.Producer
+  alias PubSub.Message
+  alias PubSub.Message.Metadata
+  alias PubSub.Producer
 
   @type acknowledger :: {module(), ack_ref :: term(), data :: term()}
   @type batch_mode :: :bulk | :flush
@@ -34,7 +34,7 @@ defmodule GenesisPubSub.Adapter do
               {:ok, [Message.published_t()]} | {:error, any()}
 
   @doc """
-  Convert a `Broadway.Message` into `GenesisPubSub.Message`.
+  Convert a `Broadway.Message` into `PubSub.Message`.
 
   Each Adapter may publish message data and metadata into a slightly different
   shape. This callback maps Broadway messages into internal messages.
@@ -42,12 +42,12 @@ defmodule GenesisPubSub.Adapter do
   @callback unpack(Broadway.Message.t()) :: Message.published_t()
 
   @doc """
-  Convert a `Broadway.Message` into `GenesisPubSub.Message.Metadata`.
+  Convert a `Broadway.Message` into `PubSub.Message.Metadata`.
   """
   @callback unpack_metadata(Broadway.Message.t()) :: Metadata.published_t()
 
   @doc """
-  Convert a `GenesisPubSub.Message` into a `Broadway.Message`.
+  Convert a `PubSub.Message` into a `Broadway.Message`.
 
   This is used for testing to support the `Consumer.test_message/2` and
   `Consumer.test_batch/2` functions which take in a Message and dispatch

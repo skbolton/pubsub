@@ -1,4 +1,4 @@
-defmodule GenesisPubSub.MixProject do
+defmodule PubSub.MixProject do
   use Mix.Project
 
   def project() do
@@ -70,9 +70,9 @@ defmodule GenesisPubSub.MixProject do
       extras: ["guides/testing.md", "guides/telemetry.md"],
       groups_for_modules: [
         Adapters: [
-          GenesisPubSub.Adapter,
-          GenesisPubSub.Adapter.Google,
-          GenesisPubSub.Adapter.GoogleLocal
+          PubSub.Adapter,
+          PubSub.Adapter.Google,
+          PubSub.Adapter.GoogleLocal
         ]
       ]
     ]

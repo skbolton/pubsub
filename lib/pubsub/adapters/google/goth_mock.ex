@@ -1,4 +1,4 @@
-defmodule GenesisPubSub.Adapter.Google.GothMock do
+defmodule PubSub.Adapter.Google.GothMock do
   @moduledoc false
 
   # this module is just for testing purposes so that library doesn't need

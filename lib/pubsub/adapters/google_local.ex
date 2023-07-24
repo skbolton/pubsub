@@ -1,28 +1,28 @@
-defmodule GenesisPubSub.Adapter.GoogleLocal do
+defmodule PubSub.Adapter.GoogleLocal do
   @moduledoc """
-  Adapter for use with local dev. Delegates most functions to `GenesisPubSub.Adapter.Google`
+  Adapter for use with local dev. Delegates most functions to `PubSub.Adapter.Google`
   with the exception of `broadway_producer/1` which handles setting up the topics and subscriptions
   in the local environment.
   """
-  @behaviour GenesisPubSub.Adapter
+  @behaviour PubSub.Adapter
 
-  alias GenesisPubSub.Adapter.Google
-  alias GenesisPubSub.Adapter.Google.TokenGenerator
-  alias GenesisPubSub.Adapter.GoogleLocal.Setup
+  alias PubSub.Adapter.Google
+  alias PubSub.Adapter.Google.TokenGenerator
+  alias PubSub.Adapter.GoogleLocal.Setup
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   defdelegate publish(topic, messages), to: Google
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   defdelegate unpack(message), to: Google
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   defdelegate unpack_metadata(message), to: Google
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   defdelegate pack(acknowledger, batch_mode, message), to: Google
 
-  @impl GenesisPubSub.Adapter
+  @impl PubSub.Adapter
   @doc """
   Returns the options necessary for the broadway producer key.
 

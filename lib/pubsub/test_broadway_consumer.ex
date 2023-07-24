@@ -1,4 +1,4 @@
-defmodule GenesisPubSub.TestBroadwayConsumer do
+defmodule PubSub.TestBroadwayConsumer do
   @moduledoc false
   use Broadway
 

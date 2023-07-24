@@ -1,11 +1,11 @@
-defmodule GenesisPubSub.Telemetry do
+defmodule PubSub.Telemetry do
   @moduledoc """
   Telemetry events emitter.
   """
 
   @type measurements :: %{system_time: integer()}
 
-  @spec publish_start(GenesisPubSub.Producer.topic(), [GenesisPubSub.Message.unpublished_t(), ...]) :: measurements()
+  @spec publish_start(PubSub.Producer.topic(), [PubSub.Message.unpublished_t(), ...]) :: measurements()
   @doc """
   Event for a publish start.
 
@@ -15,8 +15,8 @@ defmodule GenesisPubSub.Telemetry do
   A `measurements()` type is returned so that later the publsih_end event can be
   emitted and a duration timestamp can be calculated
 
-      publish_started = GenesisPubSub.Telemetry.publish_start([messages])
-      GenesisPubSub.Telemetry.publish_end(publish_started, [messages])
+      publish_started = PubSub.Telemetry.publish_start([messages])
+      PubSub.Telemetry.publish_end(publish_started, [messages])
   """
   def publish_start(topic, messages) when is_list(messages) do
     measurements = %{system_time: System.monotonic_time()}
@@ -25,7 +25,7 @@ defmodule GenesisPubSub.Telemetry do
     measurements
   end
 
-  @spec publish_end(measurements(), GenesisPubSub.Producer.topic(), [GenesisPubSub.Message.published_t()]) :: :ok
+  @spec publish_end(measurements(), PubSub.Producer.topic(), [PubSub.Message.published_t()]) :: :ok
   @doc """
   Event for a publish end.
 
@@ -45,8 +45,8 @@ defmodule GenesisPubSub.Telemetry do
   end
 
   @spec publish_failure(
-          GenesisPubSub.Producer.topic(),
-          GenesisPubSub.Message.unpublished_t() | [GenesisPubSub.Message.unpublished_t(), ...],
+          PubSub.Producer.topic(),
+          PubSub.Message.unpublished_t() | [PubSub.Message.unpublished_t(), ...],
           any()
         ) :: :ok
   @doc """
@@ -67,8 +67,8 @@ defmodule GenesisPubSub.Telemetry do
   def publish_failure(topic, message, error), do: publish_failure(topic, [message], error)
 
   @spec publish_retry(
-          GenesisPubSub.Producer.topic(),
-          GenesisPubSub.Message.unpublished_t() | [GenesisPubSub.Message.unpublished_t(), ...],
+          PubSub.Producer.topic(),
+          PubSub.Message.unpublished_t() | [PubSub.Message.unpublished_t(), ...],
           integer()
         ) :: :ok
   @doc """

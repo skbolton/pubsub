@@ -1,12 +1,12 @@
-defmodule GenesisPubSub.Adapter.GoogleTest do
+defmodule PubSub.Adapter.GoogleTest do
   use ExUnit.Case, async: true
   import Hammox
 
-  alias GenesisPubSub.Adapter.Google
-  alias GenesisPubSub.Message
-  alias GenesisPubSub.Message.Metadata
-  alias GenesisPubSub.SchemaSpec
-  alias GenesisPubSub.Support.TeslaHelper
+  alias PubSub.Adapter.Google
+  alias PubSub.Message
+  alias PubSub.Message.Metadata
+  alias PubSub.SchemaSpec
+  alias PubSub.Support.TeslaHelper
 
   setup [:create_message, :encoded_message, :verify_on_exit!]
 
@@ -353,7 +353,7 @@ defmodule GenesisPubSub.Adapter.GoogleTest do
                module:
                  {BroadwayCloudPubSub.Producer,
                   subscription: "projects/testing/subscriptions/test-subscription",
-                  token_generator: {GenesisPubSub.Adapter.Google.TokenGenerator, :fetch_token, []}}
+                  token_generator: {PubSub.Adapter.Google.TokenGenerator, :fetch_token, []}}
              ] ==
                Google.broadway_producer(subscription: "test-subscription")
     end

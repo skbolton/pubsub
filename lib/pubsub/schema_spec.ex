@@ -1,4 +1,4 @@
-defmodule GenesisPubSub.SchemaSpec do
+defmodule PubSub.SchemaSpec do
   @moduledoc """
   Module for defining schema specifications to support encoding/decoding.
 
@@ -40,7 +40,7 @@ defmodule GenesisPubSub.SchemaSpec do
   end
 
   def encode(%__MODULE__{type: :json}, message) do
-    GenesisPubSub.json_codec().encode(message)
+    PubSub.json_codec().encode(message)
   end
 
   def encode(%__MODULE__{type: :proto, properties: %{encoder: encoder}}, message) do
@@ -53,7 +53,7 @@ defmodule GenesisPubSub.SchemaSpec do
   end
 
   def encode!(%__MODULE__{type: :json}, message) do
-    GenesisPubSub.json_codec().encode!(message)
+    PubSub.json_codec().encode!(message)
   end
 
   def encode!(%__MODULE__{type: :proto, properties: %{encoder: encoder}}, message) do
@@ -61,7 +61,7 @@ defmodule GenesisPubSub.SchemaSpec do
   end
 
   def decode(%__MODULE__{type: :json}, payload) do
-    GenesisPubSub.json_codec().decode(payload)
+    PubSub.json_codec().decode(payload)
   end
 
   def decode(%__MODULE__{type: :proto, properties: %{encoder: encoder}}, payload) do

@@ -3,10 +3,8 @@
 A Message and event utility library for pub/sub systems.
 
 ## Documentation
-> TODO: update these links once package is published
-
-  * [API Docs](https://hexdocs.pm/pubsub)
-  * [Testing Guide](https://hexdocs.pm/pubsub/testing.html)
+> TODO: need to rename and republish pacakge
+> In the meantime see docs by running `mix docs` and opening `doc/index.html` in browser
 
 ## Installation
 

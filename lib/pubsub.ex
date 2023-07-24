@@ -1,27 +1,27 @@
-defmodule GenesisPubSub do
+defmodule PubSub do
   @moduledoc """
-  GenesisPubSub is split into 3 main components:
+  PubSub is split into 3 main components:
 
-    * `GenesisPubSub.Message` - messages are data transmitted between contexts.
+    * `PubSub.Message` - messages are data transmitted between contexts.
       They model events that have occurred that other contexts may be interested
       in.
 
-    * `GenesisPubSub.Producer`- producers publish messages. Once a message has
+    * `PubSub.Producer`- producers publish messages. Once a message has
       been produced it can not be reversed.
 
-    * `GenesisPubSub.Consumer` - consumers process messages - possibly publishing
+    * `PubSub.Consumer` - consumers process messages - possibly publishing
       new messages through producers.
 
   In order for these components to work they need an adapter to talk to an
   external pub/sub system. The available adapters are as follows.
 
-    * `GenesisPubSub.Adapter.Google` - using google pubsub as an external system
+    * `PubSub.Adapter.Google` - using google pubsub as an external system
 
-    * `GenesisPubSub.Adapter.GoogleLocal` - for local dev, uses google pubsub (or emulator) and handles setup of topics and subscriptions
+    * `PubSub.Adapter.GoogleLocal` - for local dev, uses google pubsub (or emulator) and handles setup of topics and subscriptions
 
-    * `GenesisPubSub.Adapter.Testing` - for debugging and testing
+    * `PubSub.Adapter.Testing` - for debugging and testing
 
-  > `GenesisPubSub.Adapter` has details around implementing new adapters.
+  > `PubSub.Adapter` has details around implementing new adapters.
 
   The following is a quick overview on how to get up and running. Not all options
   will be shown - consult each modules page for full rundown of its options and
@@ -34,7 +34,7 @@ defmodule GenesisPubSub do
 
       config :genesis_pubsub,
         # select an adapter
-        adapter: GenesisPubSub.Adapter.Google,
+        adapter: PubSub.Adapter.Google,
         # select a service name to decorate message metadata with
         service: "a-service-name"
 
@@ -46,7 +46,7 @@ defmodule GenesisPubSub do
   Producers publish messages. They also define how a message is encoded. For
   every type of message that needs to be published a matching producer should be
   started. Include them somewhere in your supervision tree. See
-  `GenesisPubSub.Producer.Config` for all the options available when starting a
+  `PubSub.Producer.Config` for all the options available when starting a
   producer.
 
   To create a producer we will need a producer name, topic that it will
@@ -59,11 +59,11 @@ defmodule GenesisPubSub do
       def start(_type, _args) do
         children = [
           {
-            GenesisPubSub.Producer,
-            GenesisPubSub.Producer.Config.new(%{
+            PubSub.Producer,
+            PubSub.Producer.Config.new(%{
               name: AccountOpenedProducer,
               topic: "accounts-opened",
-              schema: GenesisPubSub.SchemaSpec.json()
+              schema: PubSub.SchemaSpec.json()
             })
           }
         ]
@@ -74,10 +74,10 @@ defmodule GenesisPubSub do
 
   Now we can go ahead and create messages and publish them through our producer.
 
-      account_opened = GenesisPubSub.Message.new(data: %{account_id: "123", first_name: "Bob"})
-      GenesisPubSub.Producer.publish(AccountOpenedProducer, account_opened)
+      account_opened = PubSub.Message.new(data: %{account_id: "123", first_name: "Bob"})
+      PubSub.Producer.publish(AccountOpenedProducer, account_opened)
 
-  `GenesisPubSub.Message` contains a lot of functions for getting messages into
+  `PubSub.Message` contains a lot of functions for getting messages into
   the proper shape.
 
   ## Consumer
@@ -85,10 +85,10 @@ defmodule GenesisPubSub do
   To consume message we need to configure a consumer. Internally they are
   implemented as `Broadway` modules that you configure and define the callbacks
   for. The only extra step that is needed is to transform the `Broadway.Message`
-  given to us in the callbacks into a `GenesisPubSub.Message`. This can be done
-  by calling the `GenesisPubSub.Consumer.unpack/1` function in the callback. We
-  want to work with `GenesisPubSub.Message` structs so that we can leverage the
-  message workflows they provide. See `GenesisPubSub.Message.follow/2`
+  given to us in the callbacks into a `PubSub.Message`. This can be done
+  by calling the `PubSub.Consumer.unpack/1` function in the callback. We
+  want to work with `PubSub.Message` structs so that we can leverage the
+  message workflows they provide. See `PubSub.Message.follow/2`
 
   Using the previous producer example that publishes account creation events we
   can create a consumer that would send out welcome emails as part of a marketing
@@ -96,15 +96,15 @@ defmodule GenesisPubSub do
 
       defmodule MyApp.Marketing.AccountCreatedConsumer do
         # all options accepted by `Broadway.start_link/2` can be passed here as well
-        use GenesisPubSub.Consumer, topic: "topic-name", subscription: "subscription-name"
+        use PubSub.Consumer, topic: "topic-name", subscription: "subscription-name"
 
         alias Broadway.Message
-        alias GenesisPubSub.Consumer
-        alias GenesisPubSub.Message
+        alias PubSub.Consumer
+        alias PubSub.Message
 
         require Logger
 
-        # Note how we unpack the broadway message into a GenesisPubSub message
+        # Note how we unpack the broadway message into a PubSub message
         def handle_message(_processor_name, message, _context) do
           :ok = message
           |> Consumer.unpack()
@@ -127,7 +127,7 @@ defmodule GenesisPubSub do
       end
 
   That completes the loop of producing and consuming messages. Next suggested
-  step would be to read the `GenesisPubSub.Message` documentation to understand
+  step would be to read the `PubSub.Message` documentation to understand
   message workflows.
   """
   # credo:disable-for-next-line Credo.Check.Warning.MustNameUnderscoredVariables
@@ -139,7 +139,7 @@ defmodule GenesisPubSub do
     # config.exs
     config :genesis_pubsub, :json_codec, Poison
 
-    GenesisPubSub.json_codec()
+    PubSub.json_codec()
     Poison
   """
   def json_codec(), do: Application.get_env(:genesis_pubsub, :json_codec, Jason)
@@ -150,7 +150,7 @@ defmodule GenesisPubSub do
     # config.exs
     config :genesis_pubsub, :service, "my-service"
 
-    GenesisPubSub.service()
+    PubSub.service()
     "my-service"
   """
   def service(), do: Application.get_env(:genesis_pubsub, :service)
@@ -161,7 +161,7 @@ defmodule GenesisPubSub do
     # config.exs
     config :genesis_pubsub, :adapter, Google
 
-    GenesisPubSub.adapter()
+    PubSub.adapter()
     Google
   """
   def adapter(), do: Application.get_env(:genesis_pubsub, :adapter)
@@ -171,14 +171,14 @@ defmodule GenesisPubSub do
 
   This callback can be used to set metadata that will be merged on every message
   when `Message.new/1` is invoked. The values returned from this mfa will be
-  merged with defaults values supplied by GenesisPubSub and then values supplied
+  merged with defaults values supplied by PubSub and then values supplied
   during `Message.new/1`. The merging happens in the following order:
 
   1. library defaults
   2. merge_metadata mfa
   3. params passed to `Message.new/1`
 
-  See `GenesisPubSub.Message.Metadata.new/1` for more information on default
+  See `PubSub.Message.Metadata.new/1` for more information on default
   params supplied by library.
 
   This is useful if you have a context that can be called into to extract values
@@ -190,7 +190,7 @@ defmodule GenesisPubSub do
     # config.exs
     config :genesis_pubsub, :merge_metadata, {MyApp.Authentication, :merge_user_data, []}
 
-    GenesisPubSub.merge_metadata()
+    PubSub.merge_metadata()
     {MyApp.Authentication, :merge_jwt_params, []}
   """
   def merge_metadata() do

@@ -6,7 +6,7 @@ config :genesis_pubsub,
   test_mode?: true,
   adapter: MockAdapter
 
-config :genesis_pubsub, GenesisPubSub.Adapter.Google, auth_provider: GenesisPubSub.Adapter.Google.GothMock
+config :genesis_pubsub, PubSub.Adapter.Google, auth_provider: PubSub.Adapter.Google.GothMock
 
 config :tesla, adapter: TeslaMock
 

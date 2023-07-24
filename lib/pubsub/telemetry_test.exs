@@ -1,7 +1,7 @@
-defmodule GenesisPubSub.TelemetryTest do
+defmodule PubSub.TelemetryTest do
   use ExUnit.Case, async: true
-  alias GenesisPubSub.Message
-  alias GenesisPubSub.Telemetry
+  alias PubSub.Message
+  alias PubSub.Telemetry
 
   describe "publish_start/1" do
     test "messages must be a list of messages" do
@@ -50,7 +50,7 @@ defmodule GenesisPubSub.TelemetryTest do
           metadata: %{
             event_id: UUID.uuid4(),
             adapter_event_id: UUID.uuid4(),
-            schema: GenesisPubSub.SchemaSpec.json(),
+            schema: PubSub.SchemaSpec.json(),
             topic: topic,
             service: "a-service"
           }
@@ -72,7 +72,7 @@ defmodule GenesisPubSub.TelemetryTest do
           metadata: %{
             event_id: UUID.uuid4(),
             adapter_event_id: UUID.uuid4(),
-            schema: GenesisPubSub.SchemaSpec.json(),
+            schema: PubSub.SchemaSpec.json(),
             topic: topic,
             service: "a-service"
           }
@@ -93,7 +93,7 @@ defmodule GenesisPubSub.TelemetryTest do
           metadata: %{
             event_id: UUID.uuid4(),
             adapter_event_id: UUID.uuid4(),
-            schema: GenesisPubSub.SchemaSpec.json(),
+            schema: PubSub.SchemaSpec.json(),
             topic: topic,
             service: "a-service"
           }

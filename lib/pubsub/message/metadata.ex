@@ -1,4 +1,4 @@
-defmodule GenesisPubSub.Message.Metadata do
+defmodule PubSub.Message.Metadata do
   @moduledoc """
   A Message's metadata helps correlate information about how a message was
   created and the flow that it was created in. Metadata is helpful in
@@ -44,13 +44,13 @@ defmodule GenesisPubSub.Message.Metadata do
     Supplied at publishing time by producer.
 
   * `schema` - schema information for how message can be encoded/decoded
-    A `GenesisPubSub.SchemaSpec` struct supporting client side
+    A `PubSub.SchemaSpec` struct supporting client side
     encoding/decoding. Assigned by Producer at publish time.
 
   * `service` - name of service or deployable responsible for dispatching event
     * Assigned by Producer at publish time.
   """
-  alias GenesisPubSub.SchemaSpec
+  alias PubSub.SchemaSpec
 
   defmodule User do
     @type t :: %__MODULE__{
@@ -78,11 +78,11 @@ defmodule GenesisPubSub.Message.Metadata do
   ]
 
   @type unpublished_t :: %__MODULE__{
-          event_id: GenesisPubSub.uuid(),
+          event_id: PubSub.uuid(),
           adapter_event_id: nil,
           created_at: DateTime.t(),
-          correlation_id: GenesisPubSub.uuid(),
-          causation_id: GenesisPubSub.uuid() | nil,
+          correlation_id: PubSub.uuid(),
+          causation_id: PubSub.uuid() | nil,
           published_at: nil,
           schema: SchemaSpec.t(),
           user: User.t(),
@@ -91,13 +91,13 @@ defmodule GenesisPubSub.Message.Metadata do
         }
 
   @type published_t :: %__MODULE__{
-          event_id: GenesisPubSub.uuid(),
+          event_id: PubSub.uuid(),
           adapter_event_id: any(),
           created_at: DateTime.t(),
-          correlation_id: GenesisPubSub.uuid(),
+          correlation_id: PubSub.uuid(),
           # first event of a workflow would have nil causation
           # all following events should have one
-          causation_id: GenesisPubSub.uuid() | nil,
+          causation_id: PubSub.uuid() | nil,
           published_at: DateTime.t(),
           schema: SchemaSpec.t(),
           service: String.t(),
@@ -111,11 +111,11 @@ defmodule GenesisPubSub.Message.Metadata do
   to serialize and publish through external systems.
   """
   @type encodable :: %{
-          event_id: GenesisPubSub.uuid(),
+          event_id: PubSub.uuid(),
           adapter_event_id: any(),
           created_at: String.t(),
-          correlation_id: GenesisPubSub.uuid(),
-          causation_id: GenesisPubSub.uuid() | nil,
+          correlation_id: PubSub.uuid(),
+          causation_id: PubSub.uuid() | nil,
           published_at: String.t(),
           service: String.t(),
           topic: String.t(),
@@ -138,7 +138,7 @@ defmodule GenesisPubSub.Message.Metadata do
     * `correlation_id` - uuid
     * `created_at` - timestamp
     * `causation_id` - nil
-  2. params returned from optional `GenesisPubSub.merge_metadata/0` mfa callback
+  2. params returned from optional `PubSub.merge_metadata/0` mfa callback
   3. params passed into `Metadata.new/1`
   """
   def new(meta_data \\ %{}) do
@@ -188,7 +188,7 @@ defmodule GenesisPubSub.Message.Metadata do
   be easily serializable with json.
   """
   def to_encodable(%__MODULE__{schema: %SchemaSpec{} = schema, user: user} = meta) do
-    json_codec = GenesisPubSub.json_codec()
+    json_codec = PubSub.json_codec()
     # convert structs into encodable maps
     # this helps support more json protocols
     meta
@@ -204,7 +204,7 @@ defmodule GenesisPubSub.Message.Metadata do
   end
 
   def encode(%__MODULE__{schema: nil} = meta) do
-    json_codec = GenesisPubSub.json_codec()
+    json_codec = PubSub.json_codec()
     # convert structs into encodable maps
     # this helps support more json protocols
     meta
@@ -298,7 +298,7 @@ defmodule GenesisPubSub.Message.Metadata do
   end
 
   defp merge_metadata(params) do
-    {m, f, a} = GenesisPubSub.merge_metadata()
+    {m, f, a} = PubSub.merge_metadata()
 
     params
     |> Map.merge(Kernel.apply(m, f, a))

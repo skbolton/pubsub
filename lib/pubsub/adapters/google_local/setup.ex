@@ -1,4 +1,4 @@
-defmodule GenesisPubSub.Adapter.GoogleLocal.Setup do
+defmodule PubSub.Adapter.GoogleLocal.Setup do
   @moduledoc """
   Module for communicating with google cloud to create topics and subscriptions
   on the fly.
@@ -6,7 +6,7 @@ defmodule GenesisPubSub.Adapter.GoogleLocal.Setup do
   WARNING!: This is only for dev utilities. All topics and subscriptions should
   be created in terraform for production use.
   """
-  alias GenesisPubSub.Adapter.Google.HTTPClient
+  alias PubSub.Adapter.Google.HTTPClient
   alias GoogleApi.PubSub.V1.Model.Subscription
   alias GoogleApi.PubSub.V1.Model.Topic
 

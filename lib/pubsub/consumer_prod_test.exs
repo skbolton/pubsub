@@ -1,9 +1,9 @@
-defmodule GenesisPubSub.ConsumerProdTest do
+defmodule PubSub.ConsumerProdTest do
   # Need async: false here because we're changing an environment wide 
   # configuration value that would interfere with other test files
   use ExUnit.Case, async: false
   import Hammox
-  alias GenesisPubSub.TestGenesisConsumer
+  alias PubSub.TestConsumer
 
   setup :verify_on_exit!
 
@@ -18,25 +18,25 @@ defmodule GenesisPubSub.ConsumerProdTest do
   end
 
   test "can set processor concurrency in production" do
-    assert {:ok, _pid} = TestGenesisConsumer.start_link()
-    processors = Supervisor.which_children(GenesisPubSub.TestGenesisConsumer.Broadway.ProcessorSupervisor)
+    assert {:ok, _pid} = TestConsumer.start_link()
+    processors = Supervisor.which_children(PubSub.TestConsumer.Broadway.ProcessorSupervisor)
 
     # ensure the ProcessorSupervisor's children are the processes we expect
     assert Enum.all?(processors, &({_ref, _child_pid, :worker, [Broadway.Topology.ProcessorStage]} = &1))
     # ensure we have the prod default # of processors running
     assert System.schedulers_online() * 2 == length(processors)
-    assert Supervisor.stop(TestGenesisConsumer)
+    assert Supervisor.stop(TestConsumer)
 
     # now start the consumer with a custom processor concurrency value
     concurrent_processors = 4
-    assert {:ok, _pid} = TestGenesisConsumer.start_link(processors: [default: [concurrency: concurrent_processors]])
+    assert {:ok, _pid} = TestConsumer.start_link(processors: [default: [concurrency: concurrent_processors]])
 
-    processors = Supervisor.which_children(GenesisPubSub.TestGenesisConsumer.Broadway.ProcessorSupervisor)
+    processors = Supervisor.which_children(PubSub.TestConsumer.Broadway.ProcessorSupervisor)
 
     # ensure the ProcessorSupervisor's children are the processes we expect
     assert Enum.all?(processors, &({_ref, _child_pid, :worker, [Broadway.Topology.ProcessorStage]} = &1))
     # ensure we have the specified # of processors running
     assert concurrent_processors == length(processors)
-    assert Supervisor.stop(TestGenesisConsumer)
+    assert Supervisor.stop(TestConsumer)
   end
 end

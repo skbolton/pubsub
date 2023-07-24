@@ -1,15 +1,15 @@
-defmodule GenesisPubSub.Consumer do
+defmodule PubSub.Consumer do
   @moduledoc """
   Consumer of messages to a given topic.
   """
-  alias GenesisPubSub.Message
-  alias GenesisPubSub.Message.Metadata
+  alias PubSub.Message
+  alias PubSub.Message.Metadata
 
   @doc """
-  Starts a Broadway consumer by passing opts to `use GenesisPubSub.Consumer`.
+  Starts a Broadway consumer by passing opts to `use PubSub.Consumer`.
 
   All options from `Broadway.start_link/2` are available except for `producer` which
-  is handled by passing in the opts used by the adapters through `c:GenesisPubSub.Adapter.broadway_producer/1`.
+  is handled by passing in the opts used by the adapters through `c:PubSub.Adapter.broadway_producer/1`.
   For `batchers`, we will setup a default one with `batch_size: 10` and `batch_timeout: 2000`. You can override
   by passing your own `batchers` key or by passing just `batch_size` and `batch_timeout`.
 
@@ -22,7 +22,7 @@ defmodule GenesisPubSub.Consumer do
 
   ## Example
 
-      use GenesisPubSub.Consumer,
+      use PubSub.Consumer,
         topic: "card-transactions.transaction-processed",
         subscription: "card-transactions.transaction-sanitization"
 
@@ -47,7 +47,7 @@ defmodule GenesisPubSub.Consumer do
         producer =
           if test_mode?,
             do: [module: {Broadway.DummyProducer, []}],
-            else: GenesisPubSub.adapter().broadway_producer(opts)
+            else: PubSub.adapter().broadway_producer(opts)
 
         batch_timeout =
           if test_mode?,
@@ -97,10 +97,10 @@ defmodule GenesisPubSub.Consumer do
   @spec unpack(Broadway.Message.t()) :: Message.published_t()
   @doc """
   Converts a `%Broadway.Message{}` into a `%Message{}` using configured adapter.
-  See: `GenesisPubSub` configuration.
+  See: `PubSub` configuration.
   """
   def unpack(%Broadway.Message{} = broadway_message) do
-    adapter = GenesisPubSub.adapter()
+    adapter = PubSub.adapter()
 
     adapter.unpack(broadway_message)
   end
@@ -108,10 +108,10 @@ defmodule GenesisPubSub.Consumer do
   @spec unpack_metadata(Broadway.Message.t()) :: Metadata.published_t()
   @doc """
   Converts a `%Broadway.Message{}` into a `%Metadata{}` using configured adapter.
-  See: `GenesisPubSub` configuration.
+  See: `PubSub` configuration.
   """
   def unpack_metadata(%Broadway.Message{} = broadway_message) do
-    adapter = GenesisPubSub.adapter()
+    adapter = PubSub.adapter()
 
     adapter.unpack_metadata(broadway_message)
   end
@@ -129,14 +129,14 @@ defmodule GenesisPubSub.Consumer do
   instead of data and options.
 
       message = Message.new(data: %{account_id: "123"})
-      GenesisPubSub.Adapter.Google.test_message(MyBroadwayConsumer, message)
+      PubSub.Adapter.Google.test_message(MyBroadwayConsumer, message)
 
   Each adapter might store data differently in the metadata field of a broadway
   message so this callback allows an adapter to set up the broadway message to
   ensure that `unpack/1` will work on the produced broadway message.
   """
   def test_message(broadway_module, %Message{} = message) do
-    adapter = GenesisPubSub.adapter()
+    adapter = PubSub.adapter()
     ref = make_ref()
     ack = {Broadway.CallerAcknowledger, {self(), ref}, :ok}
 
@@ -151,7 +151,7 @@ defmodule GenesisPubSub.Consumer do
   Similar to `test_message/2` but for multiple messages.
   """
   def test_batch(broadway_module, messages) when is_list(messages) do
-    adapter = GenesisPubSub.adapter()
+    adapter = PubSub.adapter()
 
     ref = make_ref()
     ack = {Broadway.CallerAcknowledger, {self(), ref}, :ok}
