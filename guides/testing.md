@@ -9,7 +9,7 @@ To start we need to update configuration options to support testing. First, we c
 Mox.defmock(PubSubAdapterMock, for: GenesisPubSub.Adapter)
 
 # config/test.exs
-config :genesis_pubsub,
+config :pubsub,
   adapter: PubSubAdapterMock,
   test_mode?: true
 ```

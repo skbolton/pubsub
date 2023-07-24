@@ -4,19 +4,16 @@ A Message and event utility library for pub/sub systems.
 
 ## Documentation
 
-  * [API Docs](https://genesisblock.hexdocs.pm/genesis_pubsub)
-  * [Testing Guide](https://genesisblock.hexdocs.pm/genesis_pubsub/testing.html)
+  * [API Docs](https://hexdocs.pm/pubsub)
+  * [Testing Guide](https://hexdocs.pm/pubsub/testing.html)
 
 ## Installation
 
-```bash
-mix hex.organization auth genesisblock --key <'Private Hex Key' from 1password>
-```
 
 ```elixir
 def deps do
   [
-    {:genesis_pubsub, "~> 0.11.0", organization: "genesisblock"}
+    {:pubsub, "~> 0.11.0"}
   ]
 end
 ```

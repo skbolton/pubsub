@@ -20,8 +20,8 @@ defmodule GenesisPubSub.ProducerTest do
 
   describe "Producer configuration" do
     test "defaults from Application configuration get applied", %{producer_params: params} do
-      service = Application.get_env(:genesis_pubsub, :service)
-      adapter = Application.get_env(:genesis_pubsub, :adapter)
+      service = Application.get_env(:pubsub, :service)
+      adapter = Application.get_env(:pubsub, :adapter)
 
       config = Producer.Config.new(params)
       assert %Producer.Config{service: ^service, adapter: ^adapter, max_retry_duration: 0} = config
@@ -180,7 +180,7 @@ defmodule GenesisPubSub.ProducerTest do
     } do
       :telemetry.attach(
         "#{test_name}-start",
-        [:genesis_pubsub, :publish, :start],
+        [:pubsub, :publish, :start],
         &report_telemetry_received/4,
         test_name
       )
@@ -195,11 +195,9 @@ defmodule GenesisPubSub.ProducerTest do
 
       assert {:ok, %Message{}} = Producer.publish(producer_params.name, message)
 
-      assert_receive {[:genesis_pubsub, :publish, :start], _measurements, %{messages: [^message], topic: "a-topic"},
-                      ^test_name}
+      assert_receive {[:pubsub, :publish, :start], _measurements, %{messages: [^message], topic: "a-topic"}, ^test_name}
 
-      refute_receive {[:genesis_pubsub, :publish, :start], _measurements, %{messages: [^message], topic: "a-topic"},
-                      ^test_name}
+      refute_receive {[:pubsub, :publish, :start], _measurements, %{messages: [^message], topic: "a-topic"}, ^test_name}
     end
   end
 
@@ -233,21 +231,20 @@ defmodule GenesisPubSub.ProducerTest do
     test "publish start/end is called properly for single message", %{message: message, test: test_name} do
       :telemetry.attach(
         "#{test_name}-start",
-        [:genesis_pubsub, :publish, :start],
+        [:pubsub, :publish, :start],
         &report_telemetry_received/4,
         test_name
       )
 
-      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, test_name)
+      :telemetry.attach("#{test_name}-end", [:pubsub, :publish, :end], &report_telemetry_received/4, test_name)
 
       assert {:ok, published_message} = Producer.publish(MyProducer, message)
 
-      assert_receive {[:genesis_pubsub, :publish, :start], _measurements, %{messages: [^message], topic: "a-topic"},
-                      ^test_name}
+      assert_receive {[:pubsub, :publish, :start], _measurements, %{messages: [^message], topic: "a-topic"}, ^test_name}
 
       # verify that published message is sent through
-      assert_receive {[:genesis_pubsub, :publish, :end], _measurements,
-                      %{messages: [^published_message], topic: "a-topic"}, ^test_name}
+      assert_receive {[:pubsub, :publish, :end], _measurements, %{messages: [^published_message], topic: "a-topic"},
+                      ^test_name}
     end
 
     test "publish start/end is called properly for multiple messages", %{message: message, test: test_name} do
@@ -255,21 +252,21 @@ defmodule GenesisPubSub.ProducerTest do
 
       :telemetry.attach(
         "#{test_name}-start",
-        [:genesis_pubsub, :publish, :start],
+        [:pubsub, :publish, :start],
         &report_telemetry_received/4,
         test_name
       )
 
-      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, test_name)
+      :telemetry.attach("#{test_name}-end", [:pubsub, :publish, :end], &report_telemetry_received/4, test_name)
 
       assert {:ok, [published_message_one, published_message_two]} =
                Producer.publish(MyProducer, [message, second_message])
 
-      assert_receive {[:genesis_pubsub, :publish, :start], _measurements,
+      assert_receive {[:pubsub, :publish, :start], _measurements,
                       %{messages: [^message, ^second_message], topic: "a-topic"}, ^test_name}
 
       # verify that published message is sent through
-      assert_receive {[:genesis_pubsub, :publish, :end], _measurements,
+      assert_receive {[:pubsub, :publish, :end], _measurements,
                       %{
                         messages: [
                           ^published_message_one,
@@ -280,7 +277,7 @@ defmodule GenesisPubSub.ProducerTest do
     end
 
     test "publish_end is not called on error paths", %{message: message, test: test_name} do
-      :telemetry.attach("#{test_name}-end", [:genesis_pubsub, :publish, :end], &report_telemetry_received/4, test_name)
+      :telemetry.attach("#{test_name}-end", [:pubsub, :publish, :end], &report_telemetry_received/4, test_name)
 
       expect(MockAdapter, :publish, 2, fn _topic, _message -> {:error, :kaboom} end)
       # test out both single and multiple message
@@ -288,13 +285,13 @@ defmodule GenesisPubSub.ProducerTest do
       assert {:error, :kaboom} = Producer.publish(MyProducer, [message])
 
       # verify that published message is sent through
-      refute_receive {[:genesis_pubsub, :publish, :end], _measurements, _context, ^test_name}
+      refute_receive {[:pubsub, :publish, :end], _measurements, _context, ^test_name}
     end
 
     test "publish_failure is called on failed publish of single message", %{message: message, test: test_name} do
       :telemetry.attach(
         "#{test_name}-end",
-        [:genesis_pubsub, :publish, :failure],
+        [:pubsub, :publish, :failure],
         &report_telemetry_received/4,
         test_name
       )
@@ -303,7 +300,7 @@ defmodule GenesisPubSub.ProducerTest do
       assert {:error, :kaboom} = Producer.publish(MyProducer, message)
 
       assert_receive {
-        [:genesis_pubsub, :publish, :failure],
+        [:pubsub, :publish, :failure],
         _measurements,
         %{topic: "a-topic", messages: [_message1], error: :kaboom},
         ^test_name
@@ -315,7 +312,7 @@ defmodule GenesisPubSub.ProducerTest do
 
       :telemetry.attach(
         "#{test_name}-end",
-        [:genesis_pubsub, :publish, :failure],
+        [:pubsub, :publish, :failure],
         &report_telemetry_received/4,
         test_name
       )
@@ -324,7 +321,7 @@ defmodule GenesisPubSub.ProducerTest do
       assert {:error, :kaboom} = Producer.publish(MyProducer, [message, second_message])
 
       assert_receive {
-        [:genesis_pubsub, :publish, :failure],
+        [:pubsub, :publish, :failure],
         _measurements,
         %{topic: "a-topic", messages: [_message1, _message2], error: :kaboom},
         ^test_name

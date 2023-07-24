@@ -7,10 +7,9 @@ defmodule GenesisPubSub.MixProject do
       version: "0.13.8",
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
-      aliases: aliases(),
       deps: deps(),
       name: "PubSub",
-      source_url: "https://github.com/hightophq/pubsub",
+      source_url: "https://github.com/skbolton/pubsub",
       docs: docs(),
       package: package(),
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -47,7 +46,7 @@ defmodule GenesisPubSub.MixProject do
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
-      {:genesis_credo, "~> 1.0.0", only: [:dev, :test], runtime: false, organization: "genesisblock"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:google_api_pub_sub, "~> 0.36"},
       {:goth, "~> 1.3.0"},
       {:hammox, "~> 0.3", only: [:test]},
@@ -58,22 +57,15 @@ defmodule GenesisPubSub.MixProject do
     ]
   end
 
-  defp aliases() do
-    [
-      credo: ["credo --config-file deps/genesis_credo/.credo.exs"]
-    ]
-  end
-
   defp package() do
     [
-      organization: "genesisblock",
       files: ["lib", "mix.exs", "README*"]
     ]
   end
 
   def docs() do
     [
-      main: "GenesisPubSub",
+      main: "PubSub",
       extra_section: "GUIDES",
       extras: ["guides/testing.md", "guides/telemetry.md"],
       groups_for_modules: [

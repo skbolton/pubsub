@@ -9,7 +9,7 @@ defmodule GenesisPubSub.Message.MetadataTest do
     # lookup the agents state to get merge metadata
     # in each test we can change the agent state to update how the merge occurs
     # we shouldn't need to test the merging elsewhere so doing this update to application state should be fine
-    Application.put_env(:genesis_pubsub, :merge_metadata, {Agent, :get, [merge_agent, fn state -> state end]})
+    Application.put_env(:pubsub, :merge_metadata, {Agent, :get, [merge_agent, fn state -> state end]})
 
     # cleanup application state
     on_exit(fn ->

@@ -20,7 +20,7 @@ defmodule GenesisPubSub.Telemetry do
   """
   def publish_start(topic, messages) when is_list(messages) do
     measurements = %{system_time: System.monotonic_time()}
-    :telemetry.execute([:genesis_pubsub, :publish, :start], measurements, %{messages: messages, topic: topic})
+    :telemetry.execute([:pubsub, :publish, :start], measurements, %{messages: messages, topic: topic})
 
     measurements
   end
@@ -38,7 +38,7 @@ defmodule GenesisPubSub.Telemetry do
       |> Kernel.-(start_time)
       |> System.convert_time_unit(:native, :millisecond)
 
-    :telemetry.execute([:genesis_pubsub, :publish, :end], %{duration: duration}, %{
+    :telemetry.execute([:pubsub, :publish, :end], %{duration: duration}, %{
       messages: published_messages,
       topic: topic
     })
@@ -54,7 +54,7 @@ defmodule GenesisPubSub.Telemetry do
   """
   def publish_failure(topic, messages, error) when is_list(messages) do
     :telemetry.execute(
-      [:genesis_pubsub, :publish, :failure],
+      [:pubsub, :publish, :failure],
       _measurements = %{},
       %{
         topic: topic,
@@ -76,7 +76,7 @@ defmodule GenesisPubSub.Telemetry do
   """
   def publish_retry(topic, messages, total_delay) when is_list(messages) do
     :telemetry.execute(
-      [:genesis_pubsub, :publish, :retry],
+      [:pubsub, :publish, :retry],
       _measurements = %{},
       %{topic: topic, messages: messages, total_delay: total_delay}
     )

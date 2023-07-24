@@ -42,7 +42,7 @@ defmodule GenesisPubSub.Consumer do
 
       def start_link(opts \\ []) do
         opts = Keyword.merge(unquote(use_opts), opts)
-        test_mode? = Application.get_env(:genesis_pubsub, :test_mode?)
+        test_mode? = Application.get_env(:pubsub, :test_mode?)
 
         producer =
           if test_mode?,

@@ -9,12 +9,12 @@ defmodule GenesisPubSub.ConsumerProdTest do
 
   setup do
     # turn off test mode to test the prod options
-    Application.put_env(:genesis_pubsub, :test_mode?, false)
+    Application.put_env(:pubsub, :test_mode?, false)
 
     MockAdapter
     |> stub(:broadway_producer, fn _opts -> [module: {Broadway.DummyProducer, []}] end)
 
-    on_exit(fn -> Application.put_env(:genesis_pubsub, :test_mode?, true) end)
+    on_exit(fn -> Application.put_env(:pubsub, :test_mode?, true) end)
   end
 
   test "can set processor concurrency in production" do
