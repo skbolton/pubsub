@@ -3,12 +3,14 @@
 A Message and event utility library for pub/sub systems.
 
 ## Documentation
+> TODO: update these links once package is published
 
   * [API Docs](https://hexdocs.pm/pubsub)
   * [Testing Guide](https://hexdocs.pm/pubsub/testing.html)
 
 ## Installation
 
+> TODO: update name once package is published
 
 ```elixir
 def deps do
